@@ -8,7 +8,6 @@
         ;; end of file, return final result
         acc)
        (else (let ((num (string->number line)))
-               (begin
                  (cond
                   ((equal? num #f)
                    ;; not a number, ignore
@@ -21,6 +20,6 @@
                    (count-increments (+ acc 1) num))
                   (#t
                     ;; else, no increment just parse next line
-                    (count-increments acc num)))))))))
+                    (count-increments acc num))))))))
 
-(display (count-increments 0 0))
+(display (count-increments 0 #f))
