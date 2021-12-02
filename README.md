@@ -28,3 +28,20 @@ plus lisible et surtout plus facilement adaptable.
 ```
 cat day01/inputs/day01.01.txt| guile ./day01/secondwithstreams.scm
 ```
+## Day 2
+
+Aujourd'hui les Streams ne me servent quasiment à rien.
+
+J'ai passé du temps à voir comment je pouvais définir un type
+spécifique pour gérer les commandes du sous-marin et sa position
+courante. Pour le moment les commandes sont juste des fonctions.
+
+```
+cat day02/inputs/example.txt| guile ./day02/first.scm
+cat day02/inputs/day02.01.txt| guile ./day02/first.scm
+```
+
+```
+cat day02/inputs/example.txt| guile ./day02/second.scm
+cat day02/inputs/day02.01.txt| guile ./day02/second.scm
+```
