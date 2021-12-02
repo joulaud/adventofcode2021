@@ -13,3 +13,18 @@ cat day01/inputs/day01.01.txt| guile ./day01/second.scm
 
 Le premier jour est vraiment pour se dérouiller mais j'ai déjà
 l'impression de faire des bidouilles pas très clean.
+
+### deuxième passe
+
+J'ai découvert les Streams ([srfi-41]) en Scheme et ça me parait
+intéressant comme façon de faire les choses.
+
+[srfi-41]: https://srfi.schemers.org/srfi-41/srfi-41.html
+
+En les utilisant j'ai l'impression de faire un code plus propre et
+plus lisible et surtout plus facilement adaptable.
+
+
+```
+cat day01/inputs/day01.01.txt| guile ./day01/secondwithstreams.scm
+```
