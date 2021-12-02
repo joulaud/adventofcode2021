@@ -1,4 +1,4 @@
-(define-module (adventofcode first)
+(define-module (adventofcode second)
     #:use-module (ice-9 rdelim))
 
 (define (anyfalse a b c)
