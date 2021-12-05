@@ -36,7 +36,22 @@
      ((char=? #\0 c) (inc0 counter))
      ((char=? #\1 c) (inc1 counter))))
 
-(define)
+(define list-of-5-binary-counter-empty
+    (list
+     binary-counter-empty
+     binary-counter-empty
+     binary-counter-empty
+     binary-counter-empty
+     binary-counter-empty))
+
+(define (add-to-list-of-binary-counter acc cur)
+    (map add-char-to-counter acc cur))
+
+(define (count-binary-in-diagnostic-stream strm)
+   (stream-fold
+    add-to-list-of-binary-counter
+    list-of-5-binary-counter-empty
+    strm))
 
 (define-public (main args)
   (format #t "UNIMPLEMENTED"))

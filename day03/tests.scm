@@ -1,6 +1,7 @@
 (define-module (tests first)
     #:use-module (first)
     #:use-module (srfi srfi-19)
+    #:use-module (srfi srfi-41)
     #:use-module (srfi srfi-64))
 
 ;; import internal functions of module to test
@@ -36,7 +37,23 @@
 (test-eqv (count1 c) 1)
 (test-end"char to binary-counter functions")
 
-(define (x y)
-    (cond
-          ((eqv? y 1) 1)))
-(x 2)
+;; import internal functions of module to test
+(define make-binary-counter (@@ (first) make-binary-counter))
+(define count-binary-in-diagnostic-stream (@@ (first) count-binary-in-diagnostic-stream))
+(define list-of-5-binary-counter-empty (@@ (first) list-of-5-binary-counter-empty))
+(define add-to-list-of-binary-counter (@@ (first) add-to-list-of-binary-counter))
+
+(test-begin "count bits in stream of diagnostic lines")
+(define input-list '(#\0 #\0 #\1 #\1 #\0))
+(define expected (list
+                  (make-binary-counter 1 0)
+                  (make-binary-counter 1 0)
+                  (make-binary-counter 0 1)
+                  (make-binary-counter 0 1)
+                  (make-binary-counter 1 0)))
+(define res1 (add-to-list-of-binary-counter list-of-5-binary-counter-empty input-list))
+(test-equal res1 expected)
+(define input-strm (stream input-list))
+(define res2 (count-binary-in-diagnostic-stream input-strm))
+(test-equal res2 expected)
+(test-end "count bits in stream of diagnostic lines")
