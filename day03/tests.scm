@@ -26,8 +26,8 @@
 
 (test-begin "char to binary-counter functions")
 (define a (add-char-to-counter binary-counter-empty #\0))
-(define b (add-char-to-counter binary-counter-empty #\0))
-(define c (add-char-to-counter binary-counter-empty #\1))
+(define b (add-char-to-counter a #\0))
+(define c (add-char-to-counter b #\1))
 (test-eqv (count0 a) 1)
 (test-eqv (count1 a) 0)
 (test-eqv (count0 b) 2)
