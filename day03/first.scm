@@ -69,13 +69,12 @@
 (define (epsilon-and-gamma lst)
     (let* ((x (map min-max-from-counter lst))
            (x (fold
-                     (lambda (cur exponent acc)
+                     (lambda (cur acc)
                        (cons
                          (+ (* 2 (car acc)) (car cur))
                          (+ (* 2 (cdr acc)) (cdr cur))))
                      '(0 . 0) ; initial acc(umulator)
-                     x ; list of binary digits
-                     '(16 8 4 2 1)))) ; exponents
+                     x))) ; list of binary digits
         x))
 
 (define (gamma lst)
