@@ -57,3 +57,26 @@
 (define res2 (count-binary-in-diagnostic-stream input-strm))
 (test-equal res2 expected)
 (test-end "count bits in stream of diagnostic lines")
+
+;; import internal functions of module to test
+(define min-max-from-counter (@@ (first) min-max-from-counter))
+(define gamma (@@ (first) gamma))
+(define epsilon (@@ (first) epsilon))
+(test-begin "extract gamma and epsilon from counter")
+; 1 zero, 0 ones, min is one, max is zero
+(test-equal (cons 1 0) (min-max-from-counter (make-binary-counter 1 0)))
+; same
+(test-equal (cons 1 0) (min-max-from-counter (make-binary-counter 5 2)))
+; here we have more 1s than 0s
+(test-equal (cons 0 1) (min-max-from-counter (make-binary-counter 4 6)))
+(define input (list
+               (make-binary-counter 5 7)
+               (make-binary-counter 7 5)
+               (make-binary-counter 4 8)
+               (make-binary-counter 5 7)
+               (make-binary-counter 7 5)))
+(test-eqv 22 (gamma input))
+(test-eqv 9 (epsilon input))
+(test-end "extract gamma and epsilon from counter")
+
+

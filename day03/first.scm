@@ -1,6 +1,7 @@
 (define-module (first)
     #:use-module (ice-9 rdelim)
     #:use-module (ice-9 match)
+    #:use-module (srfi srfi-1) ; lists library
     #:use-module (srfi srfi-9)
     #:use-module (srfi srfi-9 gnu) ; immutable records
     #:use-module (srfi srfi-41))
@@ -52,6 +53,33 @@
     add-to-list-of-binary-counter
     list-of-5-binary-counter-empty
     strm))
+
+(define (min-max-from-counter counter)
+    (let* ((zeros (count0 counter))
+           (ones (count1 counter)))
+     (cond
+      ((< zeros ones) (cons 0 1))
+      (else (cons 1 0)))))
+
+(define (dbg t v) (format #t "~s: ~a\n" t v))
+(define (gamma lst)
+    (let* ((x (map min-max-from-counter lst))
+           (x (begin (dbg "min-max" x) (map cdr x)))
+           (x (begin (dbg "max" x)
+               (fold
+                      (lambda (cur exponent acc)
+                        (begin
+                          (dbg "acc" acc)
+                          (dbg "cur" cur)
+                          (dbg "exponent" exponent)
+                          (+ acc (* cur exponent))))
+                      0 ; initial acc(umulator)
+                      x ; list of binary digits
+                      '(16 8 4 2 1))))) ; exponents
+        x))
+
+(define (epsilon lst)
+    (display "UNIM"))
 
 (define-public (main args)
   (format #t "UNIMPLEMENTED"))
