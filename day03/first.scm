@@ -1,6 +1,7 @@
 (define-module (first)
     #:use-module (ice-9 rdelim)
     #:use-module (ice-9 match)
+    #:use-module (ice-9 format)
     #:use-module (srfi srfi-1) ; lists library
     #:use-module (srfi srfi-9)
     #:use-module (srfi srfi-9 gnu) ; immutable records
@@ -38,20 +39,22 @@
      ((char=? #\1 c) (inc1 counter))))
 
 (define list-of-5-binary-counter-empty
-    (list
-     binary-counter-empty
-     binary-counter-empty
-     binary-counter-empty
-     binary-counter-empty
-     binary-counter-empty))
+   (list-of-binary-counter-empty 5))
+
+(define (list-of-binary-counter-empty num)
+    (define (rec-list-of-binary-counter-empty acc num)
+      (cond
+       ((<= num 0) acc)
+       (else (rec-list-of-binary-counter-empty (cons binary-counter-empty acc) (- num 1)))))
+    (rec-list-of-binary-counter-empty '() num))
 
 (define (add-to-list-of-binary-counter acc cur)
     (map add-char-to-counter acc cur))
 
-(define (count-binary-in-diagnostic-stream strm)
+(define (count-binary-in-diagnostic-stream strm len)
    (stream-fold
     add-to-list-of-binary-counter
-    list-of-5-binary-counter-empty
+    (list-of-binary-counter-empty len)
     strm))
 
 (define (min-max-from-counter counter)
@@ -62,13 +65,14 @@
       (else (cons 1 0)))))
 
 (define (dbg t v) (format #t "~s: ~a\n" t v))
+
 (define (epsilon-and-gamma lst)
     (let* ((x (map min-max-from-counter lst))
            (x (fold
                      (lambda (cur exponent acc)
                        (cons
-                         (+ (car acc) (* (car cur) exponent))
-                         (+ (cdr acc) (* (cdr cur) exponent))))
+                         (+ (* 2 (car acc)) (car cur))
+                         (+ (* 2 (cdr acc)) (cdr cur))))
                      '(0 . 0) ; initial acc(umulator)
                      x ; list of binary digits
                      '(16 8 4 2 1)))) ; exponents
@@ -85,10 +89,10 @@
     ;; We extract epsilon and gamma from diag text in current-input-port
     (let* ((x (stream-of-lines))
            (x (stream-map string->list x))
-           (x (count-binary-in-diagnostic-stream x))
+           (len (length (stream-car x)))
+           (x (count-binary-in-diagnostic-stream x len))
            (x (epsilon-and-gamma x)))
       (* (car x) (cdr x))))
-
 
 (define-public (main args)
    (format #t "result is: ~d" (get-power-consumption)))

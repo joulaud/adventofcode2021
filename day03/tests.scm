@@ -54,7 +54,7 @@
 (define res1 (add-to-list-of-binary-counter list-of-5-binary-counter-empty input-list))
 (test-equal res1 expected)
 (define input-strm (stream input-list))
-(define res2 (count-binary-in-diagnostic-stream input-strm))
+(define res2 (count-binary-in-diagnostic-stream input-strm 5))
 (test-equal res2 expected)
 (test-end "count bits in stream of diagnostic lines")
 
