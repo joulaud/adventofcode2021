@@ -29,19 +29,55 @@
           (rec-bit-criteria-filter lst (+ pos 1))))))
    (rec-bit-criteria-filter lst 0))
 
-(define (most-common lst)
-   (define (rec-most-common lst zeros ones)
+(define (count-zeros-and-ones lst)
+   (define (rec-count-zeros-and-ones lst zeros ones)
      (cond
-      ((eq? lst '()) (if (>= ones zeros) 1 0))
+      ((eq? lst '()) (cons zeros ones))
       (else
        (let* ((num (car lst))
               (zeros (if (eq? num 0) (+ 1 zeros) zeros))
               (ones (if (eq? num 1) (+ 1 ones) ones)))
-         (rec-most-common (cdr lst) zeros ones)))))
-   (rec-most-common lst 0 0))
+         (rec-count-zeros-and-ones (cdr lst) zeros ones)))))
+   (rec-count-zeros-and-ones lst 0 0))
+
+(define (most-common lst)
+  (let* ((count (count-zeros-and-ones lst))
+         (zeros (car count))
+         (ones (cdr count)))
+   (if (>= ones zeros) 1 0)))
+
+(define (least-common lst)
+  ;; Note: if a number is not at all present it is considered the least
+  ;; common anyway
+  (let* ((count (count-zeros-and-ones lst))
+         (zeros (car count))
+         (ones (cdr count)))
+   (if (<= zeros ones) 0 1)))
+
+(define (vec-of-binary-digits->num vec)
+  (let ((len (vector-length vec)))
+    (define (rec-f acc pos)
+     (begin
+        (cond
+         ((eq? pos len) acc)
+         (else (rec-f
+                 (+ (* 2 acc) (vector-ref vec pos))
+                 (+ pos 1))))))
+    (rec-f 0 0)))
+
+(define (o2-generator-rating-vec lst)
+  (bit-criteria-filter most-common lst))
 
 (define (o2-generator-rating lst)
-  (bit-criteria-filter most-common lst))
+  (vec-of-binary-digits->num
+    (o2-generator-rating-vec lst)))
+
+(define (co2-scrubber-rating-vec lst)
+  (bit-criteria-filter least-common lst))
+
+(define (co2-scrubber-rating lst)
+  (vec-of-binary-digits->num
+    (co2-scrubber-rating-vec lst)))
 
 (define-public (main args)
    (format #t "result is: ~d" 0))
