@@ -80,5 +80,15 @@
 (define (epsilon lst)
     (car (epsilon-and-gamma lst)))
 
+(define (get-power-consumption)
+    ;; Power consumption is produce of epsilon*gamma
+    ;; We extract epsilon and gamma from diag text in current-input-port
+    (let* ((x (stream-of-lines))
+           (x (stream-map string->list x))
+           (x (count-binary-in-diagnostic-stream x))
+           (x (epsilon-and-gamma x)))
+      (* (car x) (cdr x))))
+
+
 (define-public (main args)
-  (format #t "UNIMPLEMENTED"))
+   (format #t "result is: ~d" (get-power-consumption)))

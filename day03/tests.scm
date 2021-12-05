@@ -80,3 +80,20 @@
 (test-end "extract gamma and epsilon from counter")
 
 
+(define get-power-consumption (@@ (first) get-power-consumption))
+(test-begin "extract power consumption from diagnostic")
+(test-eqv 198
+  (with-input-from-string "00100
+11110
+10110
+10111
+10101
+01111
+00111
+11100
+10000
+11001
+00010
+01010"
+      get-power-consumption))
+(test-end "extract power consumption from diagnostic")
