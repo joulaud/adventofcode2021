@@ -64,18 +64,14 @@
 (define (dbg t v) (format #t "~s: ~a\n" t v))
 (define (gamma lst)
     (let* ((x (map min-max-from-counter lst))
-           (x (begin (dbg "min-max" x) (map cdr x)))
-           (x (begin (dbg "max" x)
-               (fold
-                      (lambda (cur exponent acc)
-                        (begin
-                          (dbg "acc" acc)
-                          (dbg "cur" cur)
-                          (dbg "exponent" exponent)
-                          (+ acc (* cur exponent))))
-                      0 ; initial acc(umulator)
-                      x ; list of binary digits
-                      '(16 8 4 2 1))))) ; exponents
+           (x (map cdr x))
+           (x (fold
+                     (lambda (cur exponent acc)
+                       (begin
+                         (+ acc (* cur exponent))))
+                     0 ; initial acc(umulator)
+                     x ; list of binary digits
+                     '(16 8 4 2 1)))) ; exponents
         x))
 
 (define (epsilon lst)
