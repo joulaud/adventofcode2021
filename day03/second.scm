@@ -17,17 +17,17 @@
        ((eof-object? line) stream-null)
        (else (stream-cons line (stream-of-lines)))))))
 
-(define (o2-generator-rating lst)
-   (define (rec-o2-generator-rating lst pos)
+(define (bit-criteria-filter criteria lst)
+   (define (rec-bit-criteria-filter lst pos)
        (cond
         ((eq? (length lst) 1) (car lst))
         (else
          (let* ((lst lst)
                 (listatpos (map (lambda (vec) (vector-ref vec pos)) lst))
-                (num (most-common listatpos))
+                (num (criteria listatpos))
                 (lst (filter (lambda (x) (eq? num (vector-ref x pos))) lst)))
-          (rec-o2-generator-rating lst (+ pos 1))))))
-   (rec-o2-generator-rating lst 0))
+          (rec-bit-criteria-filter lst (+ pos 1))))))
+   (rec-bit-criteria-filter lst 0))
 
 (define (most-common lst)
    (define (rec-most-common lst zeros ones)
@@ -39,6 +39,9 @@
               (ones (if (eq? num 1) (+ 1 ones) ones)))
          (rec-most-common (cdr lst) zeros ones)))))
    (rec-most-common lst 0 0))
+
+(define (o2-generator-rating lst)
+  (bit-criteria-filter most-common lst))
 
 (define-public (main args)
    (format #t "result is: ~d" 0))
