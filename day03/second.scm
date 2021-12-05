@@ -22,8 +22,12 @@
        (cond
         ((eq? (length lst) 1) (car lst))
         (else
-         (rec-o2-generator-rating (cdr lst)))))
-   (rec-o2-generator-rating lst 1))
+         (let* ((lst lst)
+                (listatpos (map (lambda (vec) (vector-ref vec pos)) lst))
+                (num (most-common listatpos))
+                (lst (filter (lambda (x) (eq? num (vector-ref x pos))) lst)))
+          (rec-o2-generator-rating lst (+ pos 1))))))
+   (rec-o2-generator-rating lst 0))
 
 (define (most-common lst)
    (define (rec-most-common lst zeros ones)
