@@ -17,9 +17,13 @@
        ((eof-object? line) stream-null)
        (else (stream-cons line (stream-of-lines)))))))
 
-;(define (o2-generator-rating lst)
-;   (define (rec-o2-generator-rating lst pos))
-;   (rec-o2-generator-rating lst 1))
+(define (o2-generator-rating lst)
+   (define (rec-o2-generator-rating lst pos)
+       (cond
+        ((eq? (length lst) 1) (car lst))
+        (else
+         (rec-o2-generator-rating (cdr lst)))))
+   (rec-o2-generator-rating lst 1))
 
 (define (most-common lst)
    (define (rec-most-common lst zeros ones)
