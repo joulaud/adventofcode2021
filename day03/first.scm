@@ -62,20 +62,23 @@
       (else (cons 1 0)))))
 
 (define (dbg t v) (format #t "~s: ~a\n" t v))
-(define (gamma lst)
+(define (epsilon-and-gamma lst)
     (let* ((x (map min-max-from-counter lst))
-           (x (map cdr x))
            (x (fold
                      (lambda (cur exponent acc)
-                       (begin
-                         (+ acc (* cur exponent))))
-                     0 ; initial acc(umulator)
+                       (cons
+                         (+ (car acc) (* (car cur) exponent))
+                         (+ (cdr acc) (* (cdr cur) exponent))))
+                     '(0 . 0) ; initial acc(umulator)
                      x ; list of binary digits
                      '(16 8 4 2 1)))) ; exponents
         x))
 
+(define (gamma lst)
+    (cdr (epsilon-and-gamma lst)))
+
 (define (epsilon lst)
-    (display "UNIM"))
+    (car (epsilon-and-gamma lst)))
 
 (define-public (main args)
   (format #t "UNIMPLEMENTED"))
