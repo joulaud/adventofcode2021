@@ -38,15 +38,15 @@
      ((char=? #\0 c) (inc0 counter))
      ((char=? #\1 c) (inc1 counter))))
 
-(define list-of-5-binary-counter-empty
-   (list-of-binary-counter-empty 5))
-
 (define (list-of-binary-counter-empty num)
     (define (rec-list-of-binary-counter-empty acc num)
       (cond
        ((<= num 0) acc)
        (else (rec-list-of-binary-counter-empty (cons binary-counter-empty acc) (- num 1)))))
     (rec-list-of-binary-counter-empty '() num))
+
+(define list-of-5-binary-counter-empty
+   (list-of-binary-counter-empty 5))
 
 (define (add-to-list-of-binary-counter acc cur)
     (map add-char-to-counter acc cur))
