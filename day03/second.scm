@@ -81,5 +81,23 @@
   (vec-of-binary-digits->num
     (co2-scrubber-rating-vec lst)))
 
+(define (life-support-rating)
+  (let* ((input (stream-of-lines))
+         (input (stream-map string->list input))
+         (char0 (char->integer #\0))
+         (input (stream-map
+                  (lambda (line)
+                    (map
+                      (lambda (char)
+                          (- (char->integer char) char0))
+                      line))
+                  input))
+         (input (stream-map list->vector input))
+         (input-lst (stream->list input))
+         (o2-gen (o2-generator-rating input-lst))
+         (co2-scrub (co2-scrubber-rating input-lst)))
+    (* o2-gen co2-scrub)))
+
 (define-public (main args)
-   (format #t "result is: ~d" 0))
+  (let ((result (life-support-rating)))
+   (format #t "result is: ~d" result)))
