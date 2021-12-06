@@ -45,3 +45,45 @@ cat day02/inputs/day02.01.txt| guile ./day02/first.scm
 cat day02/inputs/example.txt| guile ./day02/second.scm
 cat day02/inputs/day02.01.txt| guile ./day02/second.scm
 ```
+## Day 3
+
+J'ai passé beaucoup beaucoup de temps à essayer de trouver comment faire
+des tests unitaires correctement avec Guile. Ma problématique étant
+de pouvoir faire des tests sur des fonctions internes (non-exportées)
+d'un module, depuis un deuxième fichier de test.
+
+J'ai essayé deux approches:
+- `set-current-module`
+- `@@`
+
+J'ai eu des problèmes avec l'interaction entre `set-current-module`
+et les `define-immutable-record-type` qui me généraient des erreurs
+`Wrong type to apply: #<syntax-transformer count0>` sans doute à cause
+de modifications dans l'ordre d'évaluation.
+
+Les `@@` m'obligent à redéclarer chaque définition que je veux utilise
+dans mes tests donc c'est très verbeux mais ça a l'air de fonctionner.
+
+Le fait de vouloir faire des tests unitaires m'a aussi poussé à faire
+des fonctions petites, et parfois trop petites et du coup j'ai perdu pas
+mal de temps.
+
+Il faut aussi que j'arrive à être plus pragmatique et à résoudre la
+tâche demandée et ne pas trop anticiper les besoins futurs. Si mes tests
+sont bien faits, la refacto sera possible en cas de besoin d'évolution.
+
+Je fais aussi une fonction `main` appelable grâce à l'option `-e`
+de Guile. Ça me permet de charger le module sans aucun effet de bord.
+
+```
+export GUILE_LOAD_PATH=day03:$GUILE_LOAD_PATH
+# Tests unitaires
+guile day03/tests.scm
+guile day03/tests-second.scm
+# Tests complets
+guile -e '(first)' -s day03/first.scm <day03/inputs/example.txt
+guile -e '(second)' -s day03/second.scm <day03/inputs/example.txt
+# Résultats
+guile -e '(first)' -s day03/first.scm <day03/inputs/day03.txt
+guile -e '(second)' -s day03/second.scm <day03/inputs/day03.txt
+```
