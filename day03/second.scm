@@ -25,8 +25,10 @@
          (let* ((lst lst)
                 (listatpos (map (lambda (vec) (vector-ref vec pos)) lst))
                 (num (criteria listatpos))
-                (lst (filter (lambda (x) (eq? num (vector-ref x pos))) lst)))
-          (rec-bit-criteria-filter lst (+ pos 1))))))
+                (lst (filter
+                        (lambda (x) (eqv? num (vector-ref x pos)))
+                        lst)))
+           (rec-bit-criteria-filter lst (+ pos 1))))))
    (rec-bit-criteria-filter lst 0))
 
 (define (count-zeros-and-ones lst)
