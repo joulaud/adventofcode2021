@@ -20,7 +20,7 @@
 (define (bit-criteria-filter criteria lst)
    (define (rec-bit-criteria-filter lst pos)
        (cond
-        ((eq? (length lst) 1) (car lst))
+        ((<= (length lst) 1) (car lst))
         (else
          (let* ((lst lst)
                 (listatpos (map (lambda (vec) (vector-ref vec pos)) lst))
