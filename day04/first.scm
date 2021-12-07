@@ -60,8 +60,8 @@
     (let loop ((result '()))
          (let ((line (read-line)))
            (cond
-             ((eof-object? line) result)
-             ((string= "" line) result)
+             ((eof-object? line) (cons line result))
+             ((string= "" line) (cons line result))
              (else (loop (cons (line->numlist line) result)))))))
 
 (define (bingo-tick grid number)

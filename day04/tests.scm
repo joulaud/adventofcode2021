@@ -43,14 +43,15 @@
 (test-equal '((1 . 2) . #f) (hash-ref (bingo-cells grid1) 10))
 (test-equal '((0 . 1) . #f) (hash-ref (bingo-cells grid1) 6))
 (define numlist2
-  (with-input-from-string
-         "22 13 17 11  0
+  (cdr
+    (with-input-from-string
+           "22 13 17 11  0
  8  2 23  4 24
 21  9 14 16  7
  6 10  3 18  5
  1 12 20 15 19
 "
-         read-grid->numlistlist))
+           read-grid->numlistlist)))
 ;; FIXME: order of lines is reversed (not a problem for solving the test)
 ;(test-equal '(22 13 17 11 0) (car numlist2))
 (test-equal '(1 12 20 15 19) (car numlist2))
