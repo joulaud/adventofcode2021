@@ -8,16 +8,18 @@
     #:use-module (srfi srfi-41))
 
 (define-record-type <bingo-grid>
-  (make-bingo-grid-internal numbers lines-count cols-count)
+  (make-bingo-grid-internal cells lines-count cols-count)
   bingo-grid?
-  (numbers bingo-numbers)
+  (cells bingo-cells)
   (lines-count bingo-lines-count)
   (cols-count bingo-cols-count))
 
-(define (number-list->positions lst)
+(define (number-list->cells lst)
     ;; LST is a list of list of numbers
     ;; This function returns a hash-map where keys are the numbers and
-    ;; values their coordinates in the grid
+    ;; values are cells representing each number in the grid.
+    ;; Each cell is '((x . y) . tick) where X and X are coordinates and
+    ;; TICK allow to know if number was ticked or not.
     ;; We assume one number is only present once in the grid, else only
     ;; the last coordinates are keeped.
     ;; We suppose a 5x5 grid by default so we initialize hash table to 25
@@ -28,7 +30,7 @@
             (let loopcol ((line (car lst)) (linecol 0))
                (if (eqv? '() line) #t
                  (begin
-                   (hash-set! h (car line) (cons lineno linecol))
+                   (hash-set! h (car line) (cons (cons lineno linecol) #f))
                    (loopcol (cdr line) (+ linecol 1)))))
             (loopline (cdr lst) (+ lineno 1)))))
     h)
@@ -38,7 +40,7 @@
   ;; we assume each internal list have the same length as it represents a rectangle grid
   (let* ((lines (length number-list))
          (cols (length (car number-list)))
-         (positions (number-list->positions number-list))
+         (positions (number-list->cells number-list))
          (lines-count (make-vector lines 0))
          (cols-count (make-vector cols 0))
          (bingo-grid (make-bingo-grid-internal positions lines-count cols-count)))
@@ -67,8 +69,9 @@
    ;; if same number is announced several times we might return #t as
    ;; winning position even if it is not
    (let* (
-          (positions (bingo-numbers grid))
-          (pos (hash-ref positions number))
+          (cells (bingo-cells grid))
+          (cell (hash-ref cells number))
+          (pos (car cell))
           (line (car pos))
           (col (cdr pos))
           (line-ticks (bingo-lines-count grid))
@@ -77,8 +80,12 @@
           (col-ticks (bingo-cols-count grid))
           (col-tick (+ 1 (vector-ref col-ticks col)))
           (line-size (vector-length col-ticks)))
+      ;; track number of cells ticked in lines and cols
       (vector-set! line-ticks line line-tick)
       (vector-set! col-ticks col col-tick)
+      ;; update tick mark for current number
+      (hash-set! cells number (cons pos #t))
+      ;; return true if grid is now winning
       (cond
          ((>= line-tick line-size) #t)
          ((>= col-tick col-size) #t)

@@ -28,20 +28,20 @@
 
 
 ;; import internal functions of module to test
-(define number-list->positions (@@ (first) number-list->positions))
+(define number-list->cells (@@ (first) number-list->cells))
 (define make-bingo-grid (@@ (first) make-bingo-grid))
-(define bingo-numbers (@@ (first) bingo-numbers))
+(define bingo-cells (@@ (first) bingo-cells))
 (define read-grid->numlistlist (@@ (first) read-grid->numlistlist))
 
 (test-begin "parse bingo card")
-(define h1 (number-list->positions '((1 2)(3 4))))
+(define h1 (number-list->cells '((1 2)(3 4))))
 (test-equal '(1 . 1) (hash-ref h1 1))
 (test-equal '(1 . 2) (hash-ref h1 2))
 (test-equal '(2 . 1) (hash-ref h1 3))
 (test-equal '(2 . 2) (hash-ref h1 4))
 (define grid1 (make-bingo-grid '((5 6 7)(8 9 10))))
-(test-equal '(2 . 3) (hash-ref (bingo-numbers grid1) 10))
-(test-equal '(1 . 2) (hash-ref (bingo-numbers grid1) 6))
+(test-equal '(2 . 3) (hash-ref (bingo-cells grid1) 10))
+(test-equal '(1 . 2) (hash-ref (bingo-cells grid1) 6))
 (define numlist2
   (with-input-from-string
          "22 13 17 11  0
@@ -55,8 +55,8 @@
 ;(test-equal '(22 13 17 11 0) (car numlist2))
 (test-equal '(1 12 20 15 19) (car numlist2))
 (define grid2 (make-bingo-grid numlist2))
-(test-equal '(1 . 1) (hash-ref (bingo-numbers grid2) 1))
-(test-equal '(5 . 5) (hash-ref (bingo-numbers grid2) 0))
+(test-equal '(1 . 1) (hash-ref (bingo-cells grid2) 1))
+(test-equal '(5 . 5) (hash-ref (bingo-cells grid2) 0))
 (test-end "parse bingo card")
 
 ;; import internal functions of module to test
@@ -78,4 +78,9 @@
 (test-equal #f (bingo-tick grid2 7))
 (test-equal #f (bingo-tick grid2 24))
 (test-equal #t (bingo-tick grid2 0))
+;; check tick marks
+(test-equal #f (cdr (hash-ref (bingo-cells grid2) 21)))
+(test-equal #f (cdr (hash-ref (bingo-cells grid2) 6)))
+(test-equal #t (cdr (hash-ref (bingo-cells grid2) 5)))
+(test-equal #t (cdr (hash-ref (bingo-cells grid2) 14)))
 (test-end "tick bingo card")
