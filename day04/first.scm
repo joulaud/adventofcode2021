@@ -3,6 +3,7 @@
     #:use-module (ice-9 match)
     #:use-module (ice-9 format)
     #:use-module (srfi srfi-1) ; lists library
+    #:use-module (srfi srfi-11) ; let*-values
     #:use-module (srfi srfi-9)
     #:use-module (srfi srfi-9 gnu) ; immutable records
     #:use-module (srfi srfi-41))
@@ -115,18 +116,18 @@
 
 (define (play-one-grid grid number)
    (let ((win? (bingo-tick grid number)))
-     (if win? (bingo-score grid)
-         #f)))
+     (if win?
+         (bingo-score grid)
+         grid)))
 
 (define (play-all-grids grids number)
-    (let*  ((x
-              (map
-                (lambda (grid)
-                   (play-one-grid grid number))
-               grids))
-            (x (filter identity x)))
-     (if (eq? '() x) #f
-         (car x))))
+    (let*-values  (((x) (map
+                           (lambda (grid)
+                              (play-one-grid grid number))
+                           grids))
+                   ((win not-win) (partition number? x))
+                   ((result) (cons win not-win)))
+        result))
 
 (define (play-bingo)
   (let* ((drawed-numbers-line (read-line))
@@ -134,13 +135,14 @@
          (drawed-numbers-list (map string->number drawed-numbers-list))
          (empty-line (read-line))
          (grids (bingo-grids)))
-   (let loop ((drawed-numbers-list drawed-numbers-list))
-       (let ((res (play-all-grids grids (car drawed-numbers-list))))
-          (if res (* (car drawed-numbers-list) res)
-              (loop (cdr drawed-numbers-list)))))))
-
-
-
+   (let loop ((drawed-numbers-list drawed-numbers-list) (grids grids))
+       (let* ((res (play-all-grids grids (car drawed-numbers-list)))
+              (win (car res))
+              (not-win (cdr res)))
+          (if
+              (>= (length win) 1)
+              (* (car drawed-numbers-list) (car win))
+              (loop (cdr drawed-numbers-list) not-win))))))
 
 (define-public (main args)
    (format #t "result: ~d\n" (play-bingo)))
