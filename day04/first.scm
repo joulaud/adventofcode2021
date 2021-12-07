@@ -101,6 +101,14 @@
       0
       cells)))
 
+(define (bingo-grids)
+  (let loop ((result '()))
+      (let* ((res (read-grid->numlistlist))
+             (numlist (cdr res))
+             (eof (eof-object? (car res)))
+             (result (cons (make-bingo-grid numlist) result)))
+        (if eof result
+            (loop result)))))
 
 (define-public (main args)
    (format #t "UNIMP\n"))

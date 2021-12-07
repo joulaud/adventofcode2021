@@ -31,6 +31,7 @@
 (define number-list->cells (@@ (first) number-list->cells))
 (define make-bingo-grid (@@ (first) make-bingo-grid))
 (define bingo-cells (@@ (first) bingo-cells))
+(define bingo-grids (@@ (first) bingo-grids))
 (define read-grid->numlistlist (@@ (first) read-grid->numlistlist))
 
 (test-begin "parse bingo card")
@@ -58,6 +59,10 @@
 (define grid2 (make-bingo-grid numlist2))
 (test-equal '((0 . 0) . #f) (hash-ref (bingo-cells grid2) 1))
 (test-equal '((4 . 4) . #f) (hash-ref (bingo-cells grid2) 0))
+(define grids
+    (with-input-from-string input-string bingo-grids))
+(define grid3 (car grids))
+(test-equal '((0 . 0) . #f) (hash-ref (bingo-cells grid3) 2))
 (test-end "parse bingo card")
 
 ;; import internal functions of module to test
