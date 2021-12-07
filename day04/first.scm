@@ -20,7 +20,7 @@
     ;; values their coordinates in the grid
     ;; We assume one number is only present once in the grid, else only
     ;; the last coordinates are keeped.
-    ;; we suppose a 5x5 grid so we initialize hash table to 25
+    ;; We suppose a 5x5 grid by default so we initialize hash table to 25
     (define h (make-hash-table 25))
     (let loopline ((lst lst) (lineno 0))
       (if (eqv? '() lst) #t
