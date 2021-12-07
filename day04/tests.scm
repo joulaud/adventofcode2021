@@ -84,3 +84,10 @@
 (test-equal #t (cdr (hash-ref (bingo-cells grid2) 5)))
 (test-equal #t (cdr (hash-ref (bingo-cells grid2) 14)))
 (test-end "tick bingo card")
+
+;; import internal functions of module to test
+(define bingo-score (@@ (first) bingo-score))
+
+(test-begin "score bingo card")
+(test-equal (+ 8 9 10) (bingo-score grid1))
+(test-end "score bingo card")

@@ -91,6 +91,16 @@
          ((>= col-tick col-size) #t)
          (else #f))))
 
+(define (bingo-score grid)
+  (let ((cells (bingo-cells grid)))
+    (hash-fold
+      (lambda (number cell acc)
+           (if (not (cdr cell))
+               (+ number acc)
+               acc))
+      0
+      cells)))
+
 
 (define-public (main args)
    (format #t "UNIMP\n"))
