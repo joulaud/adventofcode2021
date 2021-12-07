@@ -70,26 +70,29 @@
    ;; winning position even if it is not
    (let* (
           (cells (bingo-cells grid))
-          (cell (hash-ref cells number))
-          (pos (car cell))
-          (line (car pos))
-          (col (cdr pos))
-          (line-ticks (bingo-lines-count grid))
-          (line-tick (+ 1 (vector-ref line-ticks line)))
-          (col-size (vector-length line-ticks))
-          (col-ticks (bingo-cols-count grid))
-          (col-tick (+ 1 (vector-ref col-ticks col)))
-          (line-size (vector-length col-ticks)))
-      ;; track number of cells ticked in lines and cols
-      (vector-set! line-ticks line line-tick)
-      (vector-set! col-ticks col col-tick)
-      ;; update tick mark for current number
-      (hash-set! cells number (cons pos #t))
-      ;; return true if grid is now winning
-      (cond
-         ((>= line-tick line-size) #t)
-         ((>= col-tick col-size) #t)
-         (else #f))))
+          (cell (hash-ref cells number)))
+     (if cell
+       (let* (
+                (pos (car cell))
+                (line (car pos))
+                (col (cdr pos))
+                (line-ticks (bingo-lines-count grid))
+                (line-tick (+ 1 (vector-ref line-ticks line)))
+                (col-size (vector-length line-ticks))
+                (col-ticks (bingo-cols-count grid))
+                (col-tick (+ 1 (vector-ref col-ticks col)))
+                (line-size (vector-length col-ticks)))
+        ;; track number of cells ticked in lines and cols
+        (vector-set! line-ticks line line-tick)
+        (vector-set! col-ticks col col-tick)
+        ;; update tick mark for current number
+        (hash-set! cells number (cons pos #t))
+        ;; return true if grid is now winning
+        (cond
+           ((>= line-tick line-size) #t)
+           ((>= col-tick col-size) #t)
+           (else #f)))
+       #f)))
 
 (define (bingo-score grid)
   (let ((cells (bingo-cells grid)))
@@ -140,4 +143,4 @@
 
 
 (define-public (main args)
-   (play-bingo))
+   (format #t "result: ~d\n" (play-bingo)))
