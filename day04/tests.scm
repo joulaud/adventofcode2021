@@ -35,13 +35,13 @@
 
 (test-begin "parse bingo card")
 (define h1 (number-list->cells '((1 2)(3 4))))
-(test-equal '(1 . 1) (hash-ref h1 1))
-(test-equal '(1 . 2) (hash-ref h1 2))
-(test-equal '(2 . 1) (hash-ref h1 3))
-(test-equal '(2 . 2) (hash-ref h1 4))
+(test-equal '((0 . 0) . #f) (hash-ref h1 1))
+(test-equal '((0 . 1) . #f) (hash-ref h1 2))
+(test-equal '((1 . 0) . #f) (hash-ref h1 3))
+(test-equal '((1 . 1) . #f) (hash-ref h1 4))
 (define grid1 (make-bingo-grid '((5 6 7)(8 9 10))))
-(test-equal '(2 . 3) (hash-ref (bingo-cells grid1) 10))
-(test-equal '(1 . 2) (hash-ref (bingo-cells grid1) 6))
+(test-equal '((1 . 2) . #f) (hash-ref (bingo-cells grid1) 10))
+(test-equal '((0 . 1) . #f) (hash-ref (bingo-cells grid1) 6))
 (define numlist2
   (with-input-from-string
          "22 13 17 11  0
@@ -55,8 +55,8 @@
 ;(test-equal '(22 13 17 11 0) (car numlist2))
 (test-equal '(1 12 20 15 19) (car numlist2))
 (define grid2 (make-bingo-grid numlist2))
-(test-equal '(1 . 1) (hash-ref (bingo-cells grid2) 1))
-(test-equal '(5 . 5) (hash-ref (bingo-cells grid2) 0))
+(test-equal '((0 . 0) . #f) (hash-ref (bingo-cells grid2) 1))
+(test-equal '((4 . 4) . #f) (hash-ref (bingo-cells grid2) 0))
 (test-end "parse bingo card")
 
 ;; import internal functions of module to test
