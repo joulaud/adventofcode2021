@@ -97,3 +97,14 @@
 (test-begin "score bingo card")
 (test-equal (+ 8 9 10) (bingo-score grid1))
 (test-end "score bingo card")
+
+
+;; import internal functions of module to test
+(define play-all-grids (@@ (first) play-all-grids))
+
+(test-begin "play bingo game")
+(play-all-grids grids 0)
+(test-equal #t (cdr (hash-ref (bingo-cells (list-ref grids 0)) 0)))
+(test-equal #t (cdr (hash-ref (bingo-cells (list-ref grids 1)) 0)))
+(test-equal #t (cdr (hash-ref (bingo-cells (list-ref grids 2)) 0)))
+(test-end "play bingo game")

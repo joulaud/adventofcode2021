@@ -110,5 +110,30 @@
         (if eof result
             (loop result)))))
 
+(define (play-one-grid grid number)
+   (let ((win? (bingo-tick grid number)))
+     (if win? (bingo-score grid)
+         #f)))
+
+(define (play-all-grids grids number)
+    (let*  ((x
+              (map
+                (lambda (grid)
+                   (play-one-grid grid number))
+               grids))
+            (x (filter identity x)))
+     (if (eq? '() x) #f
+         (car x))))
+
+(define (play-bingo)
+  (let* ((drawed-numbers-line (read-line))
+         (drawed-numbers-list (string-split "," drawed-numbers-line))
+         (drawed-numbers-list (map string->number drawed-numbers-list)))
+   (let loop ((drawed-numbers-list drawed-numbers-list))
+      (let* (())))))
+
+
+
+
 (define-public (main args)
    (format #t "UNIMP\n"))
