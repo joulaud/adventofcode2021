@@ -127,13 +127,17 @@
 
 (define (play-bingo)
   (let* ((drawed-numbers-line (read-line))
-         (drawed-numbers-list (string-split "," drawed-numbers-line))
-         (drawed-numbers-list (map string->number drawed-numbers-list)))
+         (drawed-numbers-list (string-split drawed-numbers-line #\,))
+         (drawed-numbers-list (map string->number drawed-numbers-list))
+         (empty-line (read-line))
+         (grids (bingo-grids)))
    (let loop ((drawed-numbers-list drawed-numbers-list))
-      (let* (())))))
+       (let ((res (play-all-grids grids (car drawed-numbers-list))))
+          (if res (* (car drawed-numbers-list) res)
+              (loop (cdr drawed-numbers-list)))))))
 
 
 
 
 (define-public (main args)
-   (format #t "UNIMP\n"))
+   (play-bingo))
