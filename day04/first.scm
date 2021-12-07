@@ -44,5 +44,23 @@
          (bingo-grid (make-bingo-grid-internal positions lines-count cols-count)))
     bingo-grid))
 
+(define (line->numlist line)
+  (let* ((x line)
+         (x (string-split x #\space))
+         (x (filter
+              (lambda (s) (not (string= "" s)))
+              x))
+         (x (map string->number x)))
+    x))
+
+(define (read-grid->numlistlist)
+    ;; FIXME: due to the way we construct this list, line order is reversed (not a problem for now)
+    (let loop ((result '()))
+         (let ((line (read-line)))
+           (cond
+             ((eof-object? line) result)
+             ((string= "" line) result)
+             (else (loop (cons (line->numlist line) result)))))))
+
 (define-public (main args)
    (format #t "UNIMP\n"))
