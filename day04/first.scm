@@ -22,10 +22,10 @@
     ;; the last coordinates are keeped.
     ;; we suppose a 5x5 grid so we initialize hash table to 25
     (define h (make-hash-table 25))
-    (let loopline ((lst lst) (lineno 1))
+    (let loopline ((lst lst) (lineno 0))
       (if (eqv? '() lst) #t
           (begin
-            (let loopcol ((line (car lst)) (linecol 1))
+            (let loopcol ((line (car lst)) (linecol 0))
                (if (eqv? '() line) #t
                  (begin
                    (hash-set! h (car line) (cons lineno linecol))
@@ -61,6 +61,29 @@
              ((eof-object? line) result)
              ((string= "" line) result)
              (else (loop (cons (line->numlist line) result)))))))
+
+(define (bingo-tick grid number)
+   ;; Note: we assume one number is only announced once
+   ;; if same number is announced several times we might return #t as
+   ;; winning position even if it is not
+   (let* (
+          (positions (bingo-numbers grid))
+          (pos (hash-ref positions number))
+          (line (car pos))
+          (col (cdr pos))
+          (line-ticks (bingo-lines-count grid))
+          (line-tick (+ 1 (vector-ref line-ticks line)))
+          (col-size (vector-length line-ticks))
+          (col-ticks (bingo-cols-count grid))
+          (col-tick (+ 1 (vector-ref col-ticks col)))
+          (line-size (vector-length col-ticks)))
+      (vector-set! line-ticks line line-tick)
+      (vector-set! col-ticks col col-tick)
+      (cond
+         ((>= line-tick line-size) #t)
+         ((>= col-tick col-size) #t)
+         (else #f))))
+
 
 (define-public (main args)
    (format #t "UNIMP\n"))

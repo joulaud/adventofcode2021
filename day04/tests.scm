@@ -59,3 +59,23 @@
 (test-equal '(5 . 5) (hash-ref (bingo-numbers grid2) 0))
 (test-end "parse bingo card")
 
+;; import internal functions of module to test
+(define bingo-tick (@@ (first) bingo-tick))
+
+(test-begin "tick bingo card")
+;; ticking one full line of grid1
+(test-equal #f (bingo-tick grid1 5))
+(test-equal #f (bingo-tick grid1 6))
+(test-equal #t (bingo-tick grid1 7))
+;; ticking diagonal of grid2
+(test-equal #f (bingo-tick grid2 22))
+(test-equal #f (bingo-tick grid2 2))
+(test-equal #f (bingo-tick grid2 14))
+(test-equal #f (bingo-tick grid2 18))
+(test-equal #f (bingo-tick grid2 19))
+;; and then last col of grid2
+(test-equal #f (bingo-tick grid2 5))
+(test-equal #f (bingo-tick grid2 7))
+(test-equal #f (bingo-tick grid2 24))
+(test-equal #t (bingo-tick grid2 0))
+(test-end "tick bingo card")
