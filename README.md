@@ -108,3 +108,22 @@ guile day04/tests.scm
 # Résultats
 guile -e '(first)' -s day04/first.scm <day04/inputs/day04.txt
 ```
+
+## Day 5
+
+J'ai l'impression de me dérouiller. J'y ai encore passé beaucoup de
+temps mais en vrai ça va quand même mieux. Les structures de données
+internes viennent plus facilement.
+
+Mon petit souci est sur ma capacité à tester certaines fonctions
+intermédiaires et du coup je n'ai pas tout de suite vu le bug avec les
+lignes diagonales du type `(0,5) -> (5,0)`. Mais le fix a été rapide.
+
+```
+echo
+export GUILE_LOAD_PATH=day05:$GUILE_LOAD_PATH
+# Tests unitaires
+guile day05/tests.scm
+# Résultats
+guile -e '(first)' -s day05/first.scm <day05/inputs/day05.txt
+```
