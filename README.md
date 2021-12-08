@@ -127,3 +127,23 @@ guile day05/tests.scm
 # Résultats
 guile -e '(first)' -s day05/first.scm <day05/inputs/day05.txt
 ```
+
+## Day 6
+
+Facile. Comme souvent la difficulté vient de la modélisation dans les
+structures de données. Là par exemple il suffit de suivre le nombre
+de poissons à chaque étape du cycle et de ne pas se laisser distraire
+par la liste de chaque poisson.
+
+J'ai quand même mis trop de temps, mais bon je me bagarre avec des
+erreurs de syntaxe et surtout des erreurs d'offset (il faut 9 slots pour
+aller de 0 à 8)
+
+```
+echo
+export GUILE_LOAD_PATH=day06:$GUILE_LOAD_PATH
+# Tests unitaires
+guile day06/tests.scm
+# Résultats
+guile -e '(first)' -s day06/first.scm <day06/inputs/day06.txt
+```
