@@ -37,6 +37,10 @@
          (car coord1) (cadr coord1)
          (car coord2) (cadr coord2))))
 
+(define (vent-horiz-or-vert? vent-line)
+  (or
+   (eq? (vent-line-x1 vent-line) (vent-line-x2 vent-line))
+   (eq? (vent-line-y1 vent-line) (vent-line-y2 vent-line))))
 
 (define-public (main args)
    (display "UNIMP"))
