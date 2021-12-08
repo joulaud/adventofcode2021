@@ -1,4 +1,4 @@
-(define-module (first)
+(define-module (second)
     #:use-module (ice-9 rdelim)
     #:use-module (ice-9 match)
     #:use-module (ice-9 format)
@@ -8,14 +8,12 @@
     #:use-module (srfi srfi-9 gnu) ; immutable records
     #:use-module (srfi srfi-41)) ; Streams
 
-;;(use-modules (ice-9 rdelim))
-;;(use-modules (ice-9 match))
-;;(use-modules (ice-9 format))
-;;(use-modules (srfi srfi-1)) ; lists library
-;;(use-modules (srfi srfi-11)) ; let*-values
-;;(use-modules (srfi srfi-9))
-;;(use-modules (srfi srfi-9 gnu)) ; immutable records
-;;(use-modules (srfi srfi-41))
+(define (dbg t v) (format #t "~s: ~a\n" t v) (force-output))
+(define (printh h)
+   (hash-for-each
+     (lambda (k v)
+         (format #t "~a: ~a\n" k v))
+     h))
 
 (define-record-type <vent-line>
   (make-vent-line x1 y1 x2 y2)
@@ -63,7 +61,30 @@
        (let loop ((xcur (min x1 x2)) (xmax (max x1 x2)) (path '()))
             (if (= xcur xmax) (cons (cons xcur y1 ) path)
                 (loop (+ 1 xcur) xmax (cons (cons xcur y1) path)))))
-      (else '())))) ; oblique lines are just filtered-out
+      ((eq? (- y2 y1) (- x2 x1)) ; diagonal 45 degre from horiz clockwise
+       (let loop ((xcur (min x1 x2)) (xmax (max x1 x2))
+                  (ycur (min y1 y2)) (ymax (max y1 y2))
+                  (path '()))
+            (if (= xcur xmax) (cons (cons xcur ycur ) path)
+                (loop (+ 1 xcur) xmax  (+ 1 ycur) ymax (cons (cons xcur ycur) path)))))
+      ((eq? (- y2 y1) (- x1 x2)) ; diagonal 45 degre from horiz counter-clockwise
+       (let loop ((xcur (min x1 x2)) (xmax (max x1 x2))
+                  (ycur (max y1 y2)) (ymin (min y1 y2))
+                  (path '()))
+            (if (= xcur xmax) (cons (cons xcur ycur ) path)
+                (loop (1+ xcur) xmax  (1- ycur) ymin (cons (cons xcur ycur) path)))))
+     (else '())))) ; we ignore other lines
+
+(define (grid-print grid)
+  (do ((i 0 (1+ i)))
+      ((> i 10))
+    (do ((j 0 (1+ j)))
+        ((> j 100))
+      (let ((x (hash-ref grid (cons j i))))
+        (if x (display x)
+              (display "."))))
+   (display "\n")))
+
 
 (define stream-of-lines
   (stream-lambda (port)
@@ -98,6 +119,7 @@
     h)
 
 (define (overlap-count grid)
+  (grid-print grid)
   (hash-fold
    (lambda (point coverage-count overlap-count)
       (if (>= coverage-count 2)
