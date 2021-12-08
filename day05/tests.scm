@@ -33,4 +33,23 @@
 (test-equal 'horiz (direction (make-vent-line 0 2 0 9)))
 (test-equal #f (vent-horiz-or-vert? (make-vent-line 0 1 2 3)))
 (test-equal 'oblique (direction (make-vent-line 0 1 2 3)))
-(test-begin "parse vent")
+(test-end "parse vent")
+
+;; import internal functions of module to test
+(define vent-line->path (@@ (first) vent-line->path))
+
+(test-begin "vent paths")
+(test-equal
+  '((0 . 9) (1 . 9) (2 . 9) (3 . 9) (4 . 9) (5 . 9))
+  (reverse (vent-line->path (make-vent-line 0 9 5 9))))
+(test-equal
+  '((9 . 0) (9 . 1) (9 . 2) (9 . 3) (9 . 4) (9 . 5))
+  (reverse (vent-line->path (make-vent-line 9 5 9 0))))
+(test-end "vent paths")
+
+
+(define (printh h)
+   (hash-for-each
+     (lambda (k v)
+         (format #t "~a: ~a #~a ~a\n" k v (string? k) (number? k)))
+     h))

@@ -48,6 +48,41 @@
    ((eq? (vent-line-y1 vent-line) (vent-line-y2 vent-line)) 'vert)
    (#t 'oblique)))
 
+(define (vent-line->path vent-line)
+  (let (
+        (x1 (vent-line-x1 vent-line))
+        (y1 (vent-line-y1 vent-line))
+        (x2 (vent-line-x2 vent-line))
+        (y2 (vent-line-y2 vent-line)))
+    (cond
+      ((eq? x1 x2) ; horizontal line
+       (let loop ((ycur (min y1 y2)) (ymax (max y1 y2)) (path '()))
+            (if (= ycur ymax) (cons (cons x1 ycur) path)
+                (loop (+ 1 ycur) ymax (cons (cons x1 ycur) path)))))
+      ((eq? y1 y2) ; vertical line
+       (let loop ((xcur (min x1 x2)) (xmax (max x1 x2)) (path '()))
+            (if (= xcur xmax) (cons (cons xcur y1 ) path)
+                (loop (+ 1 xcur) xmax (cons (cons xcur y1) path)))))
+      (else '())))) ; oblique lines are just filtered-out
+
+(define (grid-coverage vent-lines)
+    ;; we suppose a 100x100 grid is reasonable
+    (define h (make-hash-table (* 100 100)))
+    (define (h-inc point)
+        (let ((v (hash-ref h point)))
+           (if v
+               (hash-set! h point (+ v 1))
+               (hash-set! h point 1))))
+    (let ((paths (map vent-line->path vent-lines)))
+      (for-each
+        (lambda (path)
+            (for-each
+               (lambda (point)
+                   (hash-inc point))
+             path))
+       paths))
+    h)
+
 (define-public (main args)
    (display "UNIMP"))
-   ;(format #t "resu(define-public (main args)
+   ;(format #t (define-public (main args)
