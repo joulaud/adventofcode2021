@@ -20,11 +20,13 @@
 
 (define (dbg t v) (format #t "~s: ~a\n" t v) (force-output))
 
-;; calculate fuel for position
-(define (calc-fuel crabs position)
+
+;; calculate fuel for position using METRIC to transform distance to fuel
+(define (calc-fuel metric crabs position)
    (let* ((fuels (map
                    (lambda (crab-pos)
-                      (abs (- position crab-pos)))
+                      (let ((distance (abs (- position crab-pos))))
+                        (metric distance)))
                    crabs))
           (total-fuel (fold
                         (lambda (fuel total-fuel)
@@ -42,13 +44,13 @@
        crabs))
 
 ;; from min-position to max-position calculate fuel and keep track of minimum fuel consumption
-(define (min-fuel crabs)
+(define (min-fuel metric crabs)
   (let* ((min-max (min-max-pos crabs))
          (min-pos (car min-max))
          (max-pos (cdr min-max)))
     (let loop ((cur-pos min-pos) (min-fuel #f))
           (if (> cur-pos max-pos) min-fuel
-              (let ((cur-fuel (calc-fuel crabs cur-pos)))
+              (let ((cur-fuel (calc-fuel metric crabs cur-pos)))
                  (if min-fuel
                      (loop (1+ cur-pos) (min min-fuel cur-fuel))
                      (loop (1+ cur-pos) cur-fuel)))))))
@@ -57,5 +59,8 @@
   (let* ((line (read-line))
          (lst (string-split line #\,))
          (numlst (map string->number lst))
-         (result (min-fuel numlst)))
-     (format #t "result: ~a\n" result)))
+         (result1 (min-fuel identity numlst))
+         (metric (lambda (n) (/ (* n (1+ n)) 2)))
+         (result2 (min-fuel metric numlst)))
+     (format #t "result1: ~a\n" result1)
+     (format #t "result2: ~a\n" result2)))

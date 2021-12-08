@@ -147,3 +147,16 @@ guile day06/tests.scm
 # Résultats
 guile -e '(first)' -s day06/first.scm <day06/inputs/day06.txt
 ```
+
+## Day 7
+
+Encore un assez facile. D'ailleurs je n'ai pas pris le temps d'écrire
+des tests unitaires, le code se décrit lui-même. Pour la partie 2
+j'ai juste rendu paramétable la fonction qui transforme la distance en
+consommation d'essence.
+
+```
+echo
+guile -e '(first)' -s day07/first.scm <day07/inputs/day07.txt
+```
+
