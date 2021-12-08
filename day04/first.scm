@@ -144,5 +144,22 @@
               (* (car drawed-numbers-list) (car win))
               (loop (cdr drawed-numbers-list) not-win))))))
 
+(define (play-losing-bingo)
+  (let* ((drawed-numbers-line (read-line))
+         (drawed-numbers-list (string-split drawed-numbers-line #\,))
+         (drawed-numbers-list (map string->number drawed-numbers-list))
+         (empty-line (read-line))
+         (grids (bingo-grids)))
+   (let loop ((drawed-numbers-list drawed-numbers-list) (grids grids))
+       (let* ((cur-number (car drawed-numbers-list))
+              (res (play-all-grids grids cur-number))
+              (win (car res))
+              (not-win (cdr res)))
+          (if
+              (<= (length not-win) 0)
+              (* cur-number (car win))
+              (loop (cdr drawed-numbers-list) not-win))))))
+
 (define-public (main args)
-   (format #t "result: ~d\n" (play-bingo)))
+   ;(format #t "result: ~d\n" (play-bingo))
+   (format #t "result2: ~d\n" (play-losing-bingo)))

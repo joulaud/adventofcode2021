@@ -123,6 +123,7 @@
 ;; import internal functions of module to test
 (define play-all-grids (@@ (first) play-all-grids))
 (define play-bingo (@@ (first) play-bingo))
+(define play-losing-bingo (@@ (first) play-losing-bingo))
 
 (test-begin "play bingo game")
 (play-all-grids grids 0)
@@ -130,4 +131,5 @@
 (test-equal #t (cdr (hash-ref (bingo-cells (list-ref grids 1)) 0)))
 (test-equal #t (cdr (hash-ref (bingo-cells (list-ref grids 2)) 0)))
 (test-equal 4512 (with-input-from-string full-input-string play-bingo))
+(test-equal 1924 (with-input-from-string full-input-string play-losing-bingo))
 (test-end "play bingo game")
