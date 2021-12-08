@@ -87,3 +87,24 @@ guile -e '(second)' -s day03/second.scm <day03/inputs/example.txt
 guile -e '(first)' -s day03/first.scm <day03/inputs/day03.txt
 guile -e '(second)' -s day03/second.scm <day03/inputs/day03.txt
 ```
+
+## Day 4
+
+Pour cet exercice je me suis pris la tête avec la structure de données
+à utiliser. Je me suis donc familiarisé avec les Vector de Scheme puis
+les Arrays quand j'ai voulu représenter les grilles de Bingo dans un
+tableau à deux dimensions. Sauf que cette représentation n'était pas
+du tout adaptée au problème et que j'ai perdu du temps pour rien.
+
+J'ai eu du mal aussi avec tout ce qui était itérations et ai appris à
+me servir des let nommés (`(let loop ((arg1 init1) (result initresult))
+(if mybool result (loop arg1 result)))`)
+
+```
+echo
+export GUILE_LOAD_PATH=day04:$GUILE_LOAD_PATH
+# Tests unitaires
+guile day04/tests.scm
+# Résultats
+guile -e '(first)' -s day04/first.scm <day04/inputs/day04.txt
+```
