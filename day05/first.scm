@@ -6,7 +6,7 @@
     #:use-module (srfi srfi-11) ; let*-values
     #:use-module (srfi srfi-9)
     #:use-module (srfi srfi-9 gnu) ; immutable records
-    #:use-module (srfi srfi-41))
+    #:use-module (srfi srfi-41)) ; Streams
 
 ;;(use-modules (ice-9 rdelim))
 ;;(use-modules (ice-9 match))
@@ -65,7 +65,22 @@
                 (loop (+ 1 xcur) xmax (cons (cons xcur y1) path)))))
       (else '())))) ; oblique lines are just filtered-out
 
-(define (grid-coverage vent-lines)
+(define stream-of-lines
+  (stream-lambda (port)
+     (let
+         ((line (read-line port)))
+      (cond
+       ((eof-object? line) stream-null)
+       (else (stream-cons line (stream-of-lines port)))))))
+
+(define (input-strm->overlap-count strm)
+ (let* ((x (stream-map line->vent-line strm))
+        (x (stream-map vent-line->path x))
+        (x (grid-coverage x))
+        (x (overlap-count x)))
+  x))
+
+(define (grid-coverage paths-strm)
     ;; we suppose a 100x100 grid is reasonable
     (define h (make-hash-table (* 100 100)))
     (define (h-inc point)
@@ -73,15 +88,23 @@
            (if v
                (hash-set! h point (+ v 1))
                (hash-set! h point 1))))
-    (let ((paths (map vent-line->path vent-lines)))
-      (for-each
-        (lambda (path)
-            (for-each
-               (lambda (point)
-                   (hash-inc point))
+    (stream-for-each
+      (lambda (path)
+          (for-each
+             (lambda (point)
+                 (h-inc point))
              path))
-       paths))
+      paths-strm)
     h)
+
+(define (overlap-count grid)
+  (hash-fold
+   (lambda (point coverage-count overlap-count)
+      (if (>= coverage-count 2)
+          (+ 1 overlap-count)
+          overlap-count))
+   0
+   grid))
 
 (define-public (main args)
    (display "UNIMP"))

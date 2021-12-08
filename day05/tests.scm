@@ -6,7 +6,7 @@
     #:use-module (srfi srfi-64))
 
 
-
+(define stream-of-lines (@@ (first) stream-of-lines))
 (define input-string
          "0,9 -> 5,9
 8,0 -> 0,8
@@ -18,6 +18,9 @@
 3,4 -> 1,4
 0,0 -> 8,8
 5,5 -> 8,2")
+
+(define input-strm
+  (stream-of-lines (open-input-string input-string)))
 
 ;; import internal functions of module to test
 (define make-vent-line (@@ (first) make-vent-line))
@@ -47,9 +50,8 @@
   (reverse (vent-line->path (make-vent-line 9 5 9 0))))
 (test-end "vent paths")
 
+(define input-strm->overlap-count (@@ (first) input-strm->overlap-count))
 
-(define (printh h)
-   (hash-for-each
-     (lambda (k v)
-         (format #t "~a: ~a #~a ~a\n" k v (string? k) (number? k)))
-     h))
+(test-begin "vent grid overlaps")
+(test-equal 5 (input-strm->overlap-count input-strm))
+(test-end "vent grid overlaps")
