@@ -42,6 +42,12 @@
    (eq? (vent-line-x1 vent-line) (vent-line-x2 vent-line))
    (eq? (vent-line-y1 vent-line) (vent-line-y2 vent-line))))
 
+(define (direction vent-line)
+  (cond
+   ((eq? (vent-line-x1 vent-line) (vent-line-x2 vent-line)) 'horiz)
+   ((eq? (vent-line-y1 vent-line) (vent-line-y2 vent-line)) 'vert)
+   (#t 'oblique)))
+
 (define-public (main args)
    (display "UNIMP"))
-   ;(format #t "result: ~d\n" (play-bingo))
+   ;(format #t "resu(define-public (main args)
