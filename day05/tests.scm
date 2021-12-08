@@ -24,5 +24,5 @@
 (define line->vent-line (@@ (first) line->vent-line))
 
 (test-begin "parse vent")
-(test-equal (make-vent-line '(8 . 0) '(0 . 8)) (line->vent-line "8,0 -> 0,8"))
+(test-equal (make-vent-line 8  0 0  8) (line->vent-line "8,0 -> 0,8"))
 (test-begin "parse vent")

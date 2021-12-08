@@ -18,23 +18,26 @@
 ;;(use-modules (srfi srfi-41))
 
 (define-record-type <vent-line>
-  (make-vent-line orig dest)
+  (make-vent-line x1 y1 x2 y2)
   vent-line?
-  (orig vent-line-orig)
-  (dest vent-line-dest))
+  (x1 vent-line-x1)
+  (y1 vent-line-y1)
+  (x2 vent-line-x2)
+  (y2 vent-line-y2))
 
 (define (line->vent-line str)
   (let* ((separator (string-contains str " -> "))
-         (coord-orig (substring str 0 separator))
-         (coord-orig (string-split coord-orig #\,))
-         (coord-orig (map string->number coord-orig))
-         (coord-orig (cons (car coord-orig) (cadr coord-orig)))
-         (coord-dest (substring str (+ 4 separator)))
-         (coord-dest (string-split coord-dest #\,))
-         (coord-dest (map string->number coord-dest))
-         (coord-dest (cons (car coord-dest) (cadr coord-dest))))
-    (make-vent-line coord-orig coord-dest)))
+         (coord1 (substring str 0 separator))
+         (coord1 (string-split coord1 #\,))
+         (coord1 (map string->number coord1))
+         (coord2 (substring str (+ 4 separator)))
+         (coord2 (string-split coord2 #\,))
+         (coord2 (map string->number coord2)))
+    (make-vent-line
+         (car coord1) (cadr coord1)
+         (car coord2) (cadr coord2))))
+
 
 (define-public (main args)
+   (display "UNIMP"))
    ;(format #t "result: ~d\n" (play-bingo))
-   (format #t "result2: ~d\n" (play-losing-bingo)))
