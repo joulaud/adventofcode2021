@@ -60,7 +60,7 @@ gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce
 
 (test-begin "recognize-patterns")
 (test-equal correctly-wired-result (pattern-list->map correctly-wired-patterns))
-(test-equal correctly-wired-result-bis (pattern-list->map correctly-wired-patterns-bis))
+(test-equal correctly-wired-result (pattern-list->map correctly-wired-patterns-bis))
 (test-end "recognize-patterns")
 
 ;; import internal functions of module to test
@@ -100,5 +100,23 @@ gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce
              (mapping (pattern-list->map patterns))))
 (test-equal 26 (count-all-1478 (parse-all (open-input-string input-string) 0)))
 (test-end "counting-easy-numbers")
-(parse-all (open-input-string input-string))
-(read-line $20)
+
+;; import internal functions of module to test
+(define output->number  (@@ (first) output->number))
+
+(test-begin "output-numbers")
+(define example-mapping
+ '(( "acedgfb" . 8)
+   ( "cdfbe" . 5)
+   ( "gcdfa" . 2)
+   ( "fbcad" . 3)
+   ( "dab" . 7)
+   ( "cefabd" . 9)
+   ( "cdfgeb" . 6)
+   ( "eafb" . 4)
+   ( "cagedb" . 0)
+   ( "ab" . 1)))
+(define example-output '("cdfeb" "fcadb" "cdfeb" "cdbaf"))
+(test-equal 5353 (output->number example-mapping example-output))
+(test-end "output-numbers")
+

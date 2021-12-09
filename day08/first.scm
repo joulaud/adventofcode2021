@@ -143,11 +143,14 @@
              (count (count-1478 mapping output)))
          (count-all-1478 rest (+ cur count)))))
 
+
 (define (output->number mapping output)
     (let loop ((rest output) (position 1000) (acc 0))
-      (let ((digit (my-assoc mapping (car rest))))
-         (if (eqv? '() rest) acc
-             (loop (cdr rest) (/ position 10) (+ acc (* position digit)))))))
+      (dbg "rest" rest)
+      (dbg "acc" acc)
+      (if (eqv? '() rest) acc
+         (let ((digit (my-assoc mapping (car rest))))
+           (loop (cdr rest) (/ position 10) (+ acc (* position digit)))))))
 
 (define (parse-all port)
   (let loop ((cur '()))
