@@ -48,13 +48,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; '(1 . (2 . "CF"))       ; deux segments
 ;; '(7 . (3 . "ACF"))      ; trois segments
-;; '(4 . (4 . "BCDF"))     ; 4 segments
-;; '(2 . (5 . "ACDEG"))    ; ne contient pas F
-;; '(3 . (5 . "ACDFG"))    ; C et F communs avec 1
-;; '(5 . (5 . "ABDFG"))    ; ni 2 ni 3
-;; '(0 . (6 . "ABCEFG"))   ; ni 6 ni 9
-;; '(6.  (6 . "ABDEFG"))   ; seul F est commun avec 1
-;; '(9 . (6 . "ABCDFG"))   ; BCDF communs avec 4
+;; '(4 . (4 . "BCDF"))     ; quatre segments
+;; '(2 . (5 . "ACDEG"))    ; ne contient pas F (F est l'intersection de 6 et 1)
+;; '(3 . (5 . "ACDFG"))    ; deux segments (C et F) communs avec 1
+;; '(5 . (5 . "ABDFG"))    ; ni 2 ni 3 parmi ceux à cinq segments
+;; '(0 . (6 . "ABCEFG"))   ; ni 6 ni 9 parmi ceux à six segments
+;; '(6.  (6 . "ABDEFG"))   ; un segment (F) commun avec 1
+;; '(9 . (6 . "ABCDFG"))   ; quatre segments (BCDF) communs avec 4
 ;; '(8 . (7 . "ABCDEFG"))  ; sept segments
 
 ;; On utilisera les char-sets de la SRFI-14 pour représenter l'afficheur
