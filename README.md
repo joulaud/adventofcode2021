@@ -160,3 +160,42 @@ echo
 guile -e '(first)' -s day07/first.scm <day07/inputs/day07.txt
 ```
 
+## Day 8
+
+J'ai plus galéré avec celui-là.
+
+Déjà il y a du "code métier" avec des règles bizarres qui me font
+écrire du code qui ressemble à
+```scheme
+(let (
+         (two-three-five (filter (size-is 5) sets))
+         (zero-six-nine (filter (size-is 6) sets))
+         ;; NEUF et QUATRE ont quatre segments communs
+         (nine  (car (filter (size-of-intersection-is four 4) zero-six-nine)))
+         ;; seul F est commun entre SIX et UN
+         (six   (car (filter (size-of-intersection-is one 1) zero-six-nine)))
+         (F     (char-set-intersection one six))
+         ;; ZERO n'est ni NEUF ni SIX
+         (zero  (car (filter (lambda (x) (and (not (equal? x nine)) (not (equal? x six)))) zero-six-nine)))
+```
+
+J'ai triché en utilisant le type `char-set` qui vient nativement et
+qui permet de faire des intersections facilement.
+
+J'ai aussi perdu du temps en essayant d'aller vite et d'utiliser des
+paires pour tout représenter au lieu de faire des
+`define-record-type`. Du coup j'ai du déboguer plusieurs fois des
+erreurs du type `In procedure cdr: Wrong type argument in position 1
+(expecting pair):`.
+
+Bref, c'est fait et ça fonctionne.
+
+```
+echo
+export GUILE_LOAD_PATH=day08:$GUILE_LOAD_PATH
+# Tests unitaires
+guile day08/tests.scm
+# Résultats
+guile -e '(first)' -s day08/first.scm <day08/inputs/day08.txt
+```
+
