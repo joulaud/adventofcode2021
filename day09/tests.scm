@@ -59,13 +59,3 @@
 (test-begin "risk-level")
 (test-equal 15 (risk-level example-array))
 (test-end "risk-level")
-
-
-
-
-
-
-
-
-
-

@@ -137,6 +137,3 @@
          (result2 "UNIMP"))
     (format #t "result1: ~a\n" result1)
     (format #t "result2: ~a\n" result2)))
-(define input-strm (stream-of-lines (open-input-string input-string)))
-
-
