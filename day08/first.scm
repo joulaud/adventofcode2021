@@ -106,6 +106,38 @@
                        (cons (cdr nine)  9))))
    final-list))
 
+(define (my-assoc alist key)
+   (cdr
+     (find
+        (lambda(x) (string= (car x) key))
+        alist)))
+(define (count-1478 mapping lst)
+  (fold
+    (lambda (cur acc)
+        (let ((num (my-assoc mapping cur)))
+          (dbg "mapping" mapping)
+          (dbg "cur" cur)
+          (dbg "num" num)
+          (if (or
+                (eq? num 1)
+                (eq? num 4)
+                (eq? num 7)
+                (eq? num 8))
+              (1+ acc)
+              acc)))
+    0
+    lst))
+
+(define (parse-input-line line)
+   (let* ((x (string-split line #\|))
+          (patterns (car x))
+          (output (cadr x))
+          (patterns (string-split patterns #\space))
+          (patterns (filter (lambda (x) (not (string= "" x))) patterns))
+          (output (string-split output #\space))
+          (output (filter (lambda (x) (not (string= "" x))) output)))
+    (cons patterns output)))
+
 (define-public (main args)
  (let* ((line (read-line))
         (lst (string-split line #\,))
