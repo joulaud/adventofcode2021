@@ -79,6 +79,7 @@ gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce
 ;; import internal functions of module to test
 (define count-1478  (@@ (first) count-1478))
 (define count-all-1478  (@@ (first) count-all-1478))
+(define parse-all  (@@ (first) parse-all))
 
 (test-begin "counting-easy-numbers")
 (define first-line-partial-mapping
@@ -95,6 +96,9 @@ gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce
     ("agebfd" . 10)))
 (define first-line-output '("fdgacbe" "cefdb" "cefbgd" "gcbe"))
 (test-equal 2
-            (count-1478 first-line-partial-mapping first-line-output))
-(test-equal 26 (count-all-1478 (open-input-string input-string) 0))
+            (count-1478 first-line-partial-mapping first-line-output
+             (mapping (pattern-list->map patterns))))
+(test-equal 26 (count-all-1478 (parse-all (open-input-string input-string) 0)))
 (test-end "counting-easy-numbers")
+(parse-all (open-input-string input-string))
+(read-line $20)
