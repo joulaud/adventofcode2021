@@ -9,10 +9,16 @@
 (use-modules (srfi srfi-1))
 (define (dbg t v) (format #t "~s: ~a\n" t v) (force-output))
 
-(define input-string "3,4,3,1,2")
-(define day1-string "2,3,2,0,1")
-(define day10-string "0,1,0,5,6,0,1,2,2,3,7,8")
-(define input-port)
+(define input-string "be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe
+edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc
+fgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg
+fbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega | efabcd cedba gadfec cb
+aecbfdg fbg gf bafeg dbefa fcge gcbea fcaegb dgceab fcbdga | gecf egdcabf bgf bfgea
+fgeab ca afcebg bdacfeg cfaedg gcfdb baec bfadeg bafgc acf | gebdcfa ecba ca fadegcb
+dbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf | cefg dcbef fcge gbcadfe
+bdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd | ed bcgafe cdgba cbgef
+egadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb
+gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce")
 
 (define correctly-wired-result
      '(
@@ -72,6 +78,7 @@
 
 ;; import internal functions of module to test
 (define count-1478  (@@ (first) count-1478))
+(define count-all-1478  (@@ (first) count-all-1478))
 
 (test-begin "counting-easy-numbers")
 (define first-line-partial-mapping
@@ -89,4 +96,5 @@
 (define first-line-output '("fdgacbe" "cefdb" "cefbgd" "gcbe"))
 (test-equal 2
             (count-1478 first-line-partial-mapping first-line-output))
+(test-equal 26 (count-all-1478 (open-input-string input-string) 0))
 (test-end "counting-easy-numbers")

@@ -133,6 +133,17 @@
           (output (filter (lambda (x) (not (string= "" x))) output)))
     (cons patterns output)))
 
+(define (count-all-1478 port cur)
+  (let ((line (read-line port)))
+   (if (eof-object? line)
+       cur
+       (let* ((line (parse-input-line line))
+              (patterns (car line))
+              (output (cdr line))
+              (mapping (pattern-list->map patterns))
+              (count (count-1478 mapping output)))
+          (count-all-1478 port (+ cur count))))))
+
 (define-public (main args)
  (let* ((line (read-line))
         (lst (string-split line #\,))
