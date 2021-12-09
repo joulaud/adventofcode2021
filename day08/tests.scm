@@ -96,13 +96,13 @@ gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce
     ("agebfd" . 10)))
 (define first-line-output '("fdgacbe" "cefdb" "cefbgd" "gcbe"))
 (test-equal 2
-            (count-1478 first-line-partial-mapping first-line-output
-             (mapping (pattern-list->map patterns))))
-(test-equal 26 (count-all-1478 (parse-all (open-input-string input-string) 0)))
+            (count-1478 first-line-partial-mapping first-line-output))
+(test-equal 26 (count-all-1478 (parse-all (open-input-string input-string)) 0))
 (test-end "counting-easy-numbers")
 
 ;; import internal functions of module to test
 (define output->number  (@@ (first) output->number))
+(define all-outputs->number  (@@ (first) all-outputs->number))
 
 (test-begin "output-numbers")
 (define example-mapping
@@ -118,5 +118,6 @@ gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce
    ( "ab" . 1)))
 (define example-output '("cdfeb" "fcadb" "cdfeb" "cdbaf"))
 (test-equal 5353 (output->number example-mapping example-output))
+(test-equal 61229 (all-outputs->number (parse-all (open-input-string input-string))))
 (test-end "output-numbers")
 

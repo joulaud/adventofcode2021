@@ -146,11 +146,18 @@
 
 (define (output->number mapping output)
     (let loop ((rest output) (position 1000) (acc 0))
-      (dbg "rest" rest)
-      (dbg "acc" acc)
       (if (eqv? '() rest) acc
          (let ((digit (my-assoc mapping (car rest))))
            (loop (cdr rest) (/ position 10) (+ acc (* position digit)))))))
+
+(define (all-outputs->number lst)
+  (let loop ((lst lst) (acc 0))
+      (if (eqv? '() lst)
+          acc
+          (let* ((rest (cdr lst))
+                 (cur (car lst))
+                 (curnum (output->number (car cur) (cdr cur))))
+            (loop rest (+ acc curnum))))))
 
 (define (parse-all port)
   (let loop ((cur '()))
@@ -167,6 +174,6 @@
   (let* (
          (parsed-lines (parse-all (current-input-port)))
          (result1 (count-all-1478 parsed-lines 0))
-         (result2 "UNIMP"))
+         (result2))
     (format #t "result1: ~a\n" result1)))
     ;;(format #t "result2: ~a\n" result2)))
