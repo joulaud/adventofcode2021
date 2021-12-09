@@ -174,6 +174,6 @@
   (let* (
          (parsed-lines (parse-all (current-input-port)))
          (result1 (count-all-1478 parsed-lines 0))
-         (result2))
-    (format #t "result1: ~a\n" result1)))
-    ;;(format #t "result2: ~a\n" result2)))
+         (result2 (all-outputs->number parsed-lines)))
+    (format #t "result1: ~a\n" result1)
+    (format #t "result2: ~a\n" result2)))
