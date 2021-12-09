@@ -104,17 +104,15 @@
    final-list))
 
 (define (my-assoc alist key)
+   ;; FIXME: canonicalize strings at parsing time to avoid sorting here
    (cdr
      (find
-        (lambda(x) (string= (car x) key))
+        (lambda(x) (string= (sort (car x) char<=?) (sort key char<=?)))
         alist)))
 (define (count-1478 mapping lst)
   (fold
     (lambda (cur acc)
         (let ((num (my-assoc mapping cur)))
-          (dbg "mapping" mapping)
-          (dbg "cur" cur)
-          (dbg "num" num)
           (if (or
                 (eq? num 1)
                 (eq? num 4)
