@@ -199,3 +199,42 @@ guile day08/tests.scm
 guile -e '(first)' -s day08/first.scm <day08/inputs/day08.txt
 ```
 
+## Day 9
+
+Le plus frustrant jusqu'ici. L'exercice n'est pas compliqué pourtant.
+
+J'ai recouru au brute-force en parcourant de façon brutale le tableau
+en deux dimensions jusqu'à ce que j'atteigne un point de convergence
+sur la taille d'un bassin. Et je répète ce brute-force autant de fois
+qu'il y a de bassins. Première frustration.
+
+Mon code est un mix de fonctionnel et d'impératif et est à mon avis
+illisible. Deuxième frustration.
+
+J'ai passé beaucoup de temps à essayer d'éviter le brute-force et le
+code impératif. Manque de pragmatisme de ma part. Troisième frustration.
+
+```
+echo
+export GUILE_LOAD_PATH=day09:$GUILE_LOAD_PATH
+# Tests unitaires
+guile day09/tests.scm
+# Résultats
+guile -e '(first)' -s day09/first.scm <day09/inputs/day09.txt
+```
+
+```
+%%%% Starting test parsing input  (Writing full log to "parsing input.log")
+# of expected passes      2
+%%%% Starting test neighbours list  (Writing full log to "neighbours list.log")
+# of expected passes      3
+%%%% Starting test low points  (Writing full log to "low points.log")
+# of expected passes      4
+%%%% Starting test risk-level  (Writing full log to "risk-level.log")
+# of expected passes      1
+%%%% Starting test fill-basin  (Writing full log to "fill-basin.log")
+# of expected passes      6
+result1: 577
+result2: 1069200
+```
+

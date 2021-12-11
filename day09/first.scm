@@ -225,6 +225,6 @@
          (strm (stream-of-lines (current-input-port)))
          (a (stream-of-lines->array strm))
          (result1 (risk-level a))
-         (result2 "UNIMP"))
+         (result2 (result2 a)))
     (format #t "result1: ~a\n" result1)
     (format #t "result2: ~a\n" result2)))
