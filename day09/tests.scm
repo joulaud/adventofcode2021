@@ -62,10 +62,14 @@
 
 ;; import internal functions of module to test
 (define basin-size  (@@ (first) basin-size))
+(define basin-sizes  (@@ (first) basin-sizes))
+(define result2  (@@ (first) result2))
 
 (test-begin "fill-basin")
 (test-equal 14 (basin-size example-array (cons 2 2)))
 (test-equal 9 (basin-size example-array (cons 0 9)))
 (test-equal 3 (basin-size example-array (cons 0 1)))
 (test-equal 9 (basin-size example-array (cons 4 6)))
+(test-equal '(9 14 9 3) (basin-sizes example-array))
+(test-equal 1134 (result2 example-array))
 (test-end "fill-basin")

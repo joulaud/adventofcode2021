@@ -199,6 +199,27 @@
               total
               (loop (+ total cur)))))))
 
+(define (basin-sizes a)
+  (let* ((dims (array-dimensions a))
+         (maxl (car dims))
+         (maxc (cadr dims))
+         (out '()))
+    (array-for-each-index
+         a
+         (lambda (i j v) (set! out (if (low? a i j) (cons (basin-size a (cons i j)) out) out)))
+         (lambda (i) #f))
+    out))
+
+(define (max3 l)
+   (let ((sorted (sort l >=)))
+     (list-head sorted 3)))
+
+(define (result2 heightmap)
+   (let* ((sizes (basin-sizes heightmap))
+          (three-big (max3 sizes)))
+    (apply * three-big)))
+
+
 (define-public (main args)
   (let* (
          (strm (stream-of-lines (current-input-port)))
