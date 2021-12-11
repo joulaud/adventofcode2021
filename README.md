@@ -238,3 +238,16 @@ result1: 577
 result2: 1069200
 ```
 
+## Day 10
+
+Beaucoup plus facile.
+
+Deux notes:
+
+Il faut absolument que j'utilise les record à la place des paires. Par
+exemple les paires de listes à chaque fois c'est compliqué à comprendre
+et surtout c'est impossible à déboguer. Et pourtant je l'ai déjà
+dit le Day 8.
+
+J'ai perdu du temps en oubliant d'exclure les lignes en erreur du calcul
+du score d'autocomplete. Le bogue n'était pas évident à comprendre.
