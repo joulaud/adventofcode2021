@@ -251,3 +251,12 @@ dit le Day 8.
 
 J'ai perdu du temps en oubliant d'exclure les lignes en erreur du calcul
 du score d'autocomplete. Le bogue n'était pas évident à comprendre.
+
+## Day 11
+
+Après le Day9 je n'ai pas répété les mêmes erreurs, du coup c'est
+beaucoup plus facile, même si mes algos ne scalent très probablemet pas.
+
+Et puis je suis clairement en mode impératif dès que je manipule des
+structures 2D, il faudrait que je suffixe la plupart de mes procédures
+par un `!`. Ce ne sont pas des fonctions, elles modifient des états.
