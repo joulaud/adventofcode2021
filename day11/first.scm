@@ -181,6 +181,15 @@
     0
     (iota 100)))
 
+(define (iterate-until-all-flashes grid)
+  (let loop ((count 1))
+        (grid-flashnum-set! grid 0)
+        (initial-octopus-grid-increase grid)
+        (octopus-flash-all grid)
+        (if (>= (grid-flashnum grid) 100)
+            count
+            (loop (1+ count)))))
+
 (define example-grid
  #2(
      ( 1 1 1 1 1)
@@ -225,6 +234,7 @@
          (grid (raw->octopus-grid a))
          (nul (iterate-flashes grid 100))
          (result1 (grid-flashnum grid))
-         (result2 "UNIMP"))
+         (grid (raw->octopus-grid a))
+         (result2 (iterate-until-all-flashes grid)))
     (format #t "result1: ~a\n" result1)
     (format #t "result2: ~a\n" result2)))
