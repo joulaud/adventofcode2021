@@ -3,6 +3,7 @@
     #:use-module (ice-9 match)
     #:use-module (ice-9 format)
     #:use-module (srfi srfi-1) ; lists library
+    #:use-module (srfi srfi-2) ; and-let*
     #:use-module (srfi srfi-11) ; let*-values
     #:use-module (srfi srfi-9)
     #:use-module (srfi srfi-9 gnu) ; immutable records
@@ -42,6 +43,9 @@
      x))
 
 (define (neighbours l c maxl maxc)
+  ;; FIXME: this give too many neighbours as the text states explicitly
+  ;; "Diagonal locations do not count as adjacent"
+  ;; and "locations have four adjacent locations (up, down, left, and right)"
   (filter
      (lambda (x) (begin
                   (and x (not (equal? x (cons l c))))))
@@ -104,7 +108,7 @@
 (define (print-array a)
   (array-for-each-index
        a
-       (lambda (i j v) (display v))
+       (lambda (i j v) (if v (display "X") (display ".")))
        (lambda (i) (display "\n"))))
 
 (define (all-lows a)
@@ -128,6 +132,72 @@
          (lambda (i j v) (set! out (if (low? a i j) (+ out 1 v) out)))
          (lambda (i) #f))
     out))
+
+
+(define (adjacent-locations pos numl numc)
+   ;; 0,0 is the top-left corner
+   (let* ((l (car pos))
+          (c (cdr pos))
+          (upl (1- l))
+          (up (if (>= upl 0) (cons upl c) #f))
+          (downl (1+ l))
+          (down (if (< downl numl) (cons downl c) #f))
+          (leftc (1- c))
+          (left (if (>= leftc 0) (cons l leftc) #f))
+          (rightc (1+ c))
+          (right (if (< rightc numc) (cons l rightc) #f))
+          (locations (filter identity (list up down left right))))
+     locations))
+
+(define (on-basin? heightmap basinmap pos)
+  (let* ((dims (array-dimensions heightmap))
+         (numlines (car dims))
+         (numcols (cadr dims))
+         (cur-height (array-ref heightmap (car pos) (cdr pos))))
+    (if (= 9 cur-height)
+        #f ; Locations of height 9 do not count as being in any basin
+        (let loop ((locations (adjacent-locations pos numlines numcols)))
+           (if (eqv? '() locations)
+               #f
+               (let ((res (and-let* (
+                                     (adjloc (car locations))
+                                     (adjl (car adjloc))
+                                     (adjc (cdr adjloc))
+                                     (adjacent-on-basin
+                                       (array-ref basinmap adjl adjc))
+                                     (adj-height
+                                       (array-ref heightmap adjl adjc))
+                                     (higher-than-neighbour (>= cur-height adj-height))))))
+                  (if res
+                      #t
+                      (loop (cdr locations)))))))))
+
+(define (iteration-on-basin heightmap basinmap)
+  (let ((count 0))
+    (array-for-each-index
+       basinmap
+       (lambda (l c v)
+           (if (begin
+                 v)
+               #f ; already counted on basin
+               (if (on-basin? heightmap basinmap (cons l c))
+                   (begin (array-set! basinmap #t l c)
+                          (set! count (1+ count))))))
+       (lambda (l) #f))
+    count))
+
+
+(define (basin-size heightmap lowpoint)
+  (let* ((dims (array-dimensions heightmap))
+         (maxl (car dims))
+         (maxc (cadr dims))
+         (basinmap (make-array #f maxl maxc))
+         (nul (array-set! basinmap #t (car lowpoint) (cdr lowpoint))))
+    (let loop ((total 1)) ; we begin with one lowpoint on basin
+        (let ((cur (iteration-on-basin heightmap basinmap)))
+          (if (= cur 0)
+              total
+              (loop (+ total cur)))))))
 
 (define-public (main args)
   (let* (

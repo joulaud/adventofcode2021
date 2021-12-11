@@ -59,3 +59,13 @@
 (test-begin "risk-level")
 (test-equal 15 (risk-level example-array))
 (test-end "risk-level")
+
+;; import internal functions of module to test
+(define basin-size  (@@ (first) basin-size))
+
+(test-begin "fill-basin")
+(test-equal 14 (basin-size example-array (cons 2 2)))
+(test-equal 9 (basin-size example-array (cons 0 9)))
+(test-equal 3 (basin-size example-array (cons 0 1)))
+(test-equal 9 (basin-size example-array (cons 4 6)))
+(test-end "fill-basin")
