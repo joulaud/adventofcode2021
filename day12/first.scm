@@ -124,36 +124,44 @@
 (define (path-cons node-name path)
   (make-path (cons node-name (path->list path))))
 
-(define (edges+visited->paths edges visited from)
+(define (edges+visited->paths edges visited from no-twice?)
   (cond
       ((string= from "end")
        (list (make-path '("end"))))
-      ((and (char-lower-case? (string-ref from 0))
+      ((and (string= from "start")
             (assoc from visited))
+       '())
+      ((and
+         no-twice?
+         (char-lower-case? (string-ref from 0))
+         (assoc from visited))
        ;; already visited small node, no path
        '())
       (else
-       (let* ((new-visited (acons from #t visited))
+       (let* ((no-twice? (or no-twice?
+                             (and (char-lower-case? (string-ref from 0))
+                                  (assoc from visited))))
+              (new-visited (acons from #t visited))
               (neighbours (assoc from edges))
               (neighbours (if neighbours (cdr neighbours) '()))
               (subpaths (append-map
-                           (lambda (next-node) (edges+visited->paths edges new-visited next-node))
+                           (lambda (next-node)
+                               (edges+visited->paths edges new-visited next-node
+                                                     no-twice?))
                            neighbours))
               (paths (map
                         (lambda (subpath) (path-cons from subpath))
                         subpaths)))
          paths))))
 
-(define (graph->paths graph from)
-   (edges+visited->paths (graph-edges graph) (graph-visited graph) from))
-
-
+(define (graph->paths graph from no-twice?)
+   (edges+visited->paths (graph-edges graph) (graph-visited graph) from no-twice?))
 
 (define-public (main args)
   (let* (
          (strm (stream-of-lines (current-input-port)))
          (graph (stream-of-lines->graph strm))
-         (result1 (length (graph->paths graph "start")))
-         (result2 "UNIMP"))
+         (result1 (length (graph->paths graph "start" #t)))
+         (result2 (length (graph->paths graph "start" #f))))
     (format #t "result1: ~a\n" result1)
     (format #t "result2: ~a\n" result2)))

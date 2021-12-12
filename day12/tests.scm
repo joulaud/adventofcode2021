@@ -21,9 +21,13 @@ island1-island2")
 
 (define stream-of-lines  (@@ (first) stream-of-lines))
 (define input-strm (stream-of-lines (open-input-string input-string)))
+(define input-strm2 (stream-of-lines (open-input-file "inputs/example2.txt")))
+(define input-strm3 (stream-of-lines (open-input-file "inputs/example3.txt")))
 
 ;; import internal functions of module to test
 (define stream-of-lines->graph (@@ (first) stream-of-lines->graph))
+
+;; import internal functions of module to test
 (define node-neighbours (@@ (first) node-neighbours))
 (define graph-neighbours (@@ (first) graph-neighbours))
 
@@ -40,8 +44,18 @@ island1-island2")
 (define make-path (@@ (first) make-path))
 
 (test-begin "paths extraction")
-(test-equal '() (graph->paths input-graph "island1"))
-(test-equal (list (make-path '("other" "end"))) (graph->paths input-graph "other"))
-(test-equal 10 (length (graph->paths input-graph "start")))
+(test-equal '() (graph->paths input-graph "island1" #t))
+(test-equal (list (make-path '("other" "end"))) (graph->paths input-graph "other" #t))
+(test-equal 10 (length (graph->paths input-graph "start" #t)))
+(define input-graph2 (stream-of-lines->graph input-strm2))
+(define input-graph3 (stream-of-lines->graph input-strm3))
+(test-equal 19 (length (graph->paths input-graph2 "start" #t)))
+(test-equal 226 (length (graph->paths input-graph3 "start" #t)))
 (test-end "paths extraction")
+
+(test-begin "paths extraction single smal cave twice")
+(test-equal 36 (length (graph->paths input-graph "start"   #f)))
+(test-equal 103 (length (graph->paths input-graph2 "start"  #f)))
+(test-equal 3509 (length (graph->paths input-graph3 "start" #f)))
+(test-end "paths extraction single smal cave twice")
 
