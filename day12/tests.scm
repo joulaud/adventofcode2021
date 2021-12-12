@@ -23,11 +23,11 @@ b-end")
 ;; import internal functions of module to test
 (define stream-of-lines->graph (@@ (first) stream-of-lines->graph))
 (define node-neighbours (@@ (first) node-neighbours))
-(define graph-ref (@@ (first) graph-ref))
+(define graph-neighbours (@@ (first) graph-neighbours))
 
 (test-begin "parsing input")
 (define input-graph (stream-of-lines->graph input-strm))
 (test-equal
  (sort '("c" "b" "end" "start") string<=?)
- (sort (node-neighbours (graph-ref input-graph "A")) string<=?))
+ (sort (graph-neighbours input-graph "A") string<=?))
 (test-end "parsing input")

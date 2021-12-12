@@ -59,51 +59,94 @@
           (graph (make-empty-graph))
           (x (stream-fold
                (lambda (graph pair)
-                  (graph-add-edge graph (car pair) (cdr pair)))
+                  (graph-add-edge! graph (car pair) (cdr pair)))
                graph
                x)))
      x))
 
 (define-record-type <node>
-    (make-node name neighbours visit-status)
+    (make-node name neighbours visit-status big?)
     node?
     (name node-name) ; string identifying the node
     (neighbours node-neighbours) ; names of adjacent nodes
-    (visit-status node-visit-status)) ; symbol among 'untouched 'ongoing 'done
+    (visit-status node-visit-status) ; number of times we visited cave
+    (big? node-big?))
 (define (make-empty-node name)
-   (make-node name '() 'untouched))
+ (let* ((c (string-ref name 0))
+        (big? (char-upper-case? c)))
+   (make-node name '() 0 big?)))
 (define (node-add-neighbour node neighbour-name)
    (let* ((name (node-name node))
           (neighbours (node-neighbours node))
+          (big? (node-big? node))
           (visit-status (node-visit-status node)))
-     (make-node name (cons neighbour-name neighbours) visit-status)))
-
+     (make-node name (cons neighbour-name neighbours) visit-status big?)))
 
 (define-record-type <graph>
    ;; A <graph> is an association list from node names to <node>s
-   (make-graph nodes)
+   (make-graph nodes edges visited)
    graph?
-   (nodes graph-nodes))
+   (nodes graph-nodes)
+   (edges graph-edges)
+   (visited graph-visited))
 (define (make-empty-graph)
-  (make-graph '()))
+  (make-graph '() '() '()))
 
-(define (graph-add-edge graph name1 name2)
-   (let* ((nodes (graph-nodes graph))
-          (node1 (assoc name1 nodes))
-          (node2 (assoc name2 nodes))
-          (node1 (if node1 (cdr node1) (make-empty-node name1)))
-          (node2 (if node2 (cdr node2) (make-empty-node name2)))
-          (node1 (node-add-neighbour node1 name2))
-          (node2 (node-add-neighbour node2 name1))
-          (nodes (assoc-set! nodes name1 node1))
-          (nodes (assoc-set! nodes name2 node2)))
-     (make-graph nodes)))
+(define (edges-add-edge! edges from to)
+   (let* ((neighbours (assoc from edges))
+          (neighbours (if neighbours (cons to (cdr neighbours)) (list to)))
+          (edges (assoc-set! edges from neighbours)))
+      edges))
 
-(define (graph-ref graph name)
+(define (graph-add-edge! graph node1 node2)
+   ;; Note: visited list of nodes is reset to empty when adding edge
+   ;; Note: edges can be modified destructively in graph
    (let* ((nodes (graph-nodes graph))
-          (node (assoc name nodes))
-          (node (if node (cdr node) (make-empty-node name))))
-      node))
+          (nodes (if (member node1 nodes) nodes (cons node1 nodes)))
+          (nodes (if (member node2 nodes) nodes (cons node2 nodes)))
+          (edges (graph-edges graph))
+          (edges (edges-add-edge! edges node1 node2))
+          (edges (edges-add-edge! edges node2 node1)))
+     (make-graph nodes edges '())))
+
+(define (graph-neighbours graph from)
+   (let* ((edges (graph-edges graph))
+          (neighbours (assoc from edges))
+          (neighbours (or (cdr neighbours) '())))
+      neighbours))
+
+(or #f '())
+(define-record-type <path>
+  (make-path lst)
+  path?
+  (lst path->list))
+
+(define (path-cons node-name path)
+  (make-path (cons node-name (path->list path))))
+
+(define (graph->paths edges visited from)
+  (cond
+      ((string= from "end"
+          (list (make-path '("end")))))
+      ((and (char-lower-case? (string-ref from 0))
+            (assoc from visited))
+       ;; already visited small node, no path
+       '())
+      (else
+       (let* ((new-visited (acons from #t visited))
+              (neighbours (assoc from edges))
+              (subpaths (append-map
+                           (lambda (next-node) (graph->paths edges new-visited next-node))
+                           neighbours))
+              (paths (map
+                        (lambda (subpath) (path-cons from subpath))
+                        subpaths)))
+         paths))))
+
+
+
+(assoc 1 (acons  1 "one" (acons 1 "un" '())))
+
 
 
 (define-public (main args)
