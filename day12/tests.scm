@@ -28,7 +28,6 @@ island1-island2")
 (define stream-of-lines->graph (@@ (first) stream-of-lines->graph))
 
 ;; import internal functions of module to test
-(define node-neighbours (@@ (first) node-neighbours))
 (define graph-neighbours (@@ (first) graph-neighbours))
 
 (test-begin "parsing input")

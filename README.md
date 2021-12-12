@@ -260,3 +260,20 @@ beaucoup plus facile, même si mes algos ne scalent très probablemet pas.
 Et puis je suis clairement en mode impératif dès que je manipule des
 structures 2D, il faudrait que je suffixe la plupart de mes procédures
 par un `!`. Ce ne sont pas des fonctions, elles modifient des états.
+
+# Day 12
+
+Un parcours de graphe profondeur somme toute classique.
+
+Et cette fois-ci j'ai commencé par créer des structures de données
+beaucoup trop compliquées par rapport au besoin alors qu'il suffit
+d'une simple liste d'adjacence.  Même après avoir simplifié j'ai une
+structure de données `<graph>` avec une liste de noeuds qui n'est jamais
+utilisée et une liste `visited` qui n'est jamais ne serait-ce que créée
+(puisque la liste des noeuds visitées est locale à l'algorithme mais
+pas liée au graphe).
+
+Donc encore une fois manque de pragmatisme, et mon focus sur les
+structures de données doit savoir laisser place à un "les algos d'abord"
+surtout dans ce genre de cas où c'est self-evident et qu'on sait qu'il
+n'y aura pas d'évolution à faire.

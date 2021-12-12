@@ -64,24 +64,6 @@
                x)))
      x))
 
-(define-record-type <node>
-    (make-node name neighbours visit-status big?)
-    node?
-    (name node-name) ; string identifying the node
-    (neighbours node-neighbours) ; names of adjacent nodes
-    (visit-status node-visit-status) ; number of times we visited cave
-    (big? node-big?))
-(define (make-empty-node name)
- (let* ((c (string-ref name 0))
-        (big? (char-upper-case? c)))
-   (make-node name '() 0 big?)))
-(define (node-add-neighbour node neighbour-name)
-   (let* ((name (node-name node))
-          (neighbours (node-neighbours node))
-          (big? (node-big? node))
-          (visit-status (node-visit-status node)))
-     (make-node name (cons neighbour-name neighbours) visit-status big?)))
-
 (define-record-type <graph>
    ;; A <graph> is an association list from node names to <node>s
    (make-graph nodes edges visited)
