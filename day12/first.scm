@@ -124,10 +124,10 @@
 (define (path-cons node-name path)
   (make-path (cons node-name (path->list path))))
 
-(define (graph->paths edges visited from)
+(define (edges+visited->paths edges visited from)
   (cond
-      ((string= from "end"
-          (list (make-path '("end")))))
+      ((string= from "end")
+       (list (make-path '("end"))))
       ((and (char-lower-case? (string-ref from 0))
             (assoc from visited))
        ;; already visited small node, no path
@@ -135,23 +135,25 @@
       (else
        (let* ((new-visited (acons from #t visited))
               (neighbours (assoc from edges))
+              (neighbours (if neighbours (cdr neighbours) '()))
               (subpaths (append-map
-                           (lambda (next-node) (graph->paths edges new-visited next-node))
+                           (lambda (next-node) (edges+visited->paths edges new-visited next-node))
                            neighbours))
               (paths (map
                         (lambda (subpath) (path-cons from subpath))
                         subpaths)))
          paths))))
 
-
-
-(assoc 1 (acons  1 "one" (acons 1 "un" '())))
+(define (graph->paths graph from)
+   (edges+visited->paths (graph-edges graph) (graph-visited graph) from))
 
 
 
 (define-public (main args)
   (let* (
-         (result1 "UNIMP")
+         (strm (stream-of-lines (current-input-port)))
+         (graph (stream-of-lines->graph strm))
+         (result1 (length (graph->paths graph "start")))
          (result2 "UNIMP"))
     (format #t "result1: ~a\n" result1)
     (format #t "result2: ~a\n" result2)))

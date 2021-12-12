@@ -15,7 +15,9 @@ A-c
 A-b
 b-d
 A-end
-b-end")
+b-end
+other-end
+island1-island2")
 
 (define stream-of-lines  (@@ (first) stream-of-lines))
 (define input-strm (stream-of-lines (open-input-string input-string)))
@@ -31,3 +33,15 @@ b-end")
  (sort '("c" "b" "end" "start") string<=?)
  (sort (graph-neighbours input-graph "A") string<=?))
 (test-end "parsing input")
+
+
+;; import internal functions of module to test
+(define graph->paths (@@ (first) graph->paths))
+(define make-path (@@ (first) make-path))
+
+(test-begin "paths extraction")
+(test-equal '() (graph->paths input-graph "island1"))
+(test-equal (list (make-path '("other" "end"))) (graph->paths input-graph "other"))
+(test-equal 10 (length (graph->paths input-graph "start")))
+(test-end "paths extraction")
+
