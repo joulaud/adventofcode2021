@@ -27,13 +27,15 @@
   (y point-y))
 (define (line->point str)
   (let ((pair (string-split str #\,)))
-    (make-point (car pair) (cdr pair))))
+    (make-point
+      (string->number (car pair))
+      (string->number (cadr pair)))))
 
 (define (point-fold-vert along-x point)
    (let ((x (point-x point)))
       (cond
        ((= x along-x) #f) ; discard points on the folding line
-       ((> x along-x) (make-point (point-y point) (- (* 2 along-x) x)))
+       ((> x along-x) (make-point (- (* 2 along-x) x) (point-y point)))
        (else point))))
 
 (define (point-fold-horiz along-y point)
@@ -43,8 +45,81 @@
        ((> y along-y) (make-point (point-x point) (- (* 2 along-y) y)))
        (else point))))
 
-(define (first-fold strm)
-  #t)
+(define-record-type <sheet>
+   (list->sheet points)
+   sheet?
+   (points sheet->list))
+
+(define (lines->sheet lines)
+   (list->sheet
+     (map
+      line->point
+      lines)))
+
+(define (sheet-print sheet)
+  (let* ((lst (sheet->list sheet))
+         (max-point (fold
+                     (lambda (point maxes)
+                        (make-point
+                          (max (point-x point) (point-x maxes))
+                          (max (point-y point) (point-y maxes))))
+                     (make-point 0 0)
+                     lst))
+         (xmax (point-x max-point))
+         (ymax (point-y max-point)))
+     (do ((y 0 (1+ y)))
+         ((> y ymax))
+       (do ((x 0 (1+ x)))
+           ((> x xmax))
+         (if (member (make-point x y) lst)
+             (display "#")
+             (display ".")))
+       (display "\n"))))
+
+
+
+
+
+;; (define-record-type <fold-inst>
+;;   (make-fold-inst type val)
+;;   fold-inst?
+;;   (type fold-type)
+;;   (val fold-val))
+;; 
+;; (define (line->fold-instruction line)
+;;   (let* ((isfold? (string-prefix? "fold along" line))
+;;          (type (string-ref line 11))
+;;          (val (cadr (string-split line #\=)))
+;;          (val (string->number val)))
+;;     (make-fold-inst type val)))
+
+
+(define (line->fold-instruction line)
+  (let* ((isfold? (string-prefix? "fold along" line))
+         (type (string-ref line 11))
+         (val (cadr (string-split line #\=)))
+         (val (string->number val)))
+    (cond
+      ((eqv? #\x type)
+       (lambda (p) (point-fold-vert val p)))
+      ((eqv? #\y type)
+       (lambda (p) (point-fold-horiz val p))))))
+
+(define (sheet-fold sheet fold-inst)
+   (let* ((points (sheet->list sheet))
+          (new-points (map
+                        fold-inst
+                        points))
+          (new-points (filter identity new-points)))
+     (list->sheet new-points)))
+
+(define (first-fold port)
+   (let* ((sheet (read-bloc port))
+          (sheet (lines->sheet sheet))
+          (first-inst (read-line port))
+          (first-inst (line->fold-instruction first-inst))
+          (folded (sheet-fold sheet first-inst)))
+     (length (sheet->list folded))))
 
 (define-public (main args)
   (let* (

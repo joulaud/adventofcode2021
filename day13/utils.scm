@@ -10,6 +10,7 @@
     #:use-module (srfi srfi-41) ; Streams
     #:use-module (srfi srfi-43)) ; Vectors iterators
 
+(use-modules (ice-9 rdelim))
 (define-public (dbg t v) (format #t "~s: ~a\n" t v) (force-output))
 
 (define-public stream-of-lines
@@ -19,6 +20,13 @@
       (cond
        ((eof-object? line) stream-null)
        (else (stream-cons line (stream-of-lines port)))))))
+
+(define-public (read-bloc port)
+  (let loop ((line (read-line port)) (out '()))
+       (cond
+         ((eof-object? line) (reverse out))
+         ((string-null? line) (reverse out))
+         (else (loop (read-line port) (cons line out))))))
 
 (define-public (array-for-each-index a proc-cell proc-endofline)
   (let* ((dims (array-dimensions a))
