@@ -277,3 +277,15 @@ Donc encore une fois manque de pragmatisme, et mon focus sur les
 structures de données doit savoir laisser place à un "les algos d'abord"
 surtout dans ce genre de cas où c'est self-evident et qu'on sait qu'il
 n'y aura pas d'évolution à faire.
+
+## Day 13
+
+Algoritmique simple encore, à condition de ne pas confondre x et y.
+
+L'affichage est nécessaire pour résoudre le problème cette fois-ci
+et pas seulement pour le debug. Je n'ai pas mis en place l'OCR pour
+sortir la réponse au format texte.
+
+J'en ai profité pour refacto un peu la façon dont je structure mes
+fichiers pour avoir une lib `utils.scm` réutilisable et j'ai joué avec
+un `def-syntax` dans mes tests pour éviter les répétitions.

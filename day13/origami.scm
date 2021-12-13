@@ -76,6 +76,38 @@
              (display ".")))
        (display "\n"))))
 
+(define (sheet-line->string sheet y xmax)
+  (let ((lst (sheet->list sheet)))
+    (fold
+      (lambda (x str)
+        (string-append
+          str
+          (if (member (make-point x y) lst)
+              "#"
+              ".")))
+      ""
+      (iota (1+ xmax)))))
+
+(define (sheet->string sheet)
+  (let* ((lst (sheet->list sheet))
+         (max-point (fold
+                     (lambda (point maxes)
+                        (make-point
+                          (max (point-x point) (point-x maxes))
+                          (max (point-y point) (point-y maxes))))
+                     (make-point 0 0)
+                     lst))
+         (xmax (point-x max-point))
+         (ymax (point-y max-point)))
+      (fold
+        (lambda (y str)
+         (string-append
+           str
+           (sheet-line->string sheet y xmax)
+           "\n"))
+        ""
+        (iota (1+ ymax)))))
+
 ;; (define-record-type <fold-inst>
 ;;   (make-fold-inst type val)
 ;;   fold-inst?
@@ -134,6 +166,7 @@
          (result1 (fold-following-instructions sheet (list (car instructions))))
          (result1 (length (sheet->list result1)))
          (result2 (fold-following-instructions sheet instructions))
-         (result2 (sheet-print result2)))
+         (nul (sheet-print result2))
+         (result2 (sheet->string result2)))
     (format #t "result1: ~a\n" result1)
-    (format #t "result2: ~a\n" result2)))
+    (format #t "result2: \n~a\n" result2)))
