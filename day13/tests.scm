@@ -25,7 +25,11 @@
 (test-end "parsing input")
 
 
+(import-private point-fold-vert)
+(import-private point-fold-horiz)
 (import-private first-fold)
 (test-begin "folding")
+(test-equal (make-point 0 0) (point-fold-vert 5 (make-point 10 0)))
+(test-equal (make-point 0 0) (point-fold-horiz 5 (make-point 0 10)))
 (test-equal 17 (first-fold input-strm))
 (test-end "folding")

@@ -29,6 +29,20 @@
   (let ((pair (string-split str #\,)))
     (make-point (car pair) (cdr pair))))
 
+(define (point-fold-vert along-x point)
+   (let ((x (point-x point)))
+      (cond
+       ((= x along-x) #f) ; discard points on the folding line
+       ((> x along-x) (make-point (point-y point) (- (* 2 along-x) x)))
+       (else point))))
+
+(define (point-fold-horiz along-y point)
+   (let ((y (point-y point)))
+      (cond
+       ((= y along-y) #f)
+       ((> y along-y) (make-point (point-x point) (- (* 2 along-y) y)))
+       (else point))))
+
 (define (first-fold strm)
   #t)
 
