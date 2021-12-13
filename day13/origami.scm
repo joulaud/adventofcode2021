@@ -118,17 +118,22 @@
           (new-points (uniq new-points)))
      (list->sheet new-points)))
 
-(define (first-fold port)
-   (let* ((sheet (read-bloc port))
-          (sheet (lines->sheet sheet))
-          (first-inst (read-line port))
-          (first-inst (line->fold-instruction first-inst))
-          (folded (sheet-fold sheet first-inst)))
-     (length (sheet->list folded))))
+(define (fold-following-instructions sheet instructions)
+  (let loop ((sheet sheet) (instructions instructions))
+     (if (null? instructions) sheet
+         (fold-following-instructions
+           (sheet-fold sheet (car instructions))
+           (cdr instructions)))))
 
 (define-public (main args)
-  (let* (
-         (result1 "UNImP")
-         (result2 "UNIMP"))
+  (let* ((port (current-input-port))
+         (sheet (read-bloc port))
+         (sheet (lines->sheet sheet))
+         (instructions (read-bloc port))
+         (instructions (map line->fold-instruction instructions))
+         (result1 (fold-following-instructions sheet (list (car instructions))))
+         (result1 (length (sheet->list result1)))
+         (result2 (fold-following-instructions sheet instructions))
+         (result2 (sheet-print result2)))
     (format #t "result1: ~a\n" result1)
     (format #t "result2: ~a\n" result2)))
