@@ -10,13 +10,22 @@
 
 (define (dbg t v) (format #t "~s: ~a\n" t v) (force-output))
 
+(define-syntax-rule (import-private module)
+    (define module (@@ (adventofcode2021 day13 origami) module)))
+
 (define input-strm (stream-of-lines (open-input-file "inputs/example.txt")))
 (stream-map display input-strm)
 
-
 ;; import internal functions of module to test
-;;(define graph-neighbours (@@ (first) graph-neighbours))
+(import-private line->point)
+(import-private make-point)
 
 (test-begin "parsing input")
+(test-equal (make-point 6 10) (line->point "6,10"))
 (test-end "parsing input")
 
+
+(import-private first-fold)
+(test-begin "folding")
+(test-equal 17 (first-fold input-strm))
+(test-end "folding")

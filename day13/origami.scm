@@ -20,6 +20,18 @@
 (use-modules (srfi srfi-9 gnu)) ; immutable records
 (use-modules (srfi srfi-41))
 
+(define-record-type <point>
+  (make-point x y)
+  point?
+  (x point-x)
+  (y point-y))
+(define (line->point str)
+  (let ((pair (string-split str #\,)))
+    (make-point (car pair) (cdr pair))))
+
+(define (first-fold strm)
+  #t)
+
 (define-public (main args)
   (let* (
          (result1 "UNImP")
