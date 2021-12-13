@@ -32,13 +32,4 @@
 (test-equal (make-point 0 0) (point-fold-vert 5 (make-point 10 0)))
 (test-equal (make-point 0 0) (point-fold-horiz 5 (make-point 0 10)))
 (test-equal 17 (first-fold (open-input-file "inputs/example.txt")))
-(define sheet (lines->sheet (read-bloc (open-input-file "inputs/example.txt"))))
 (test-end "folding")
-(sheet-print sheet)
-(define s2 (sheet-fold sheet (lambda (p) (point-fold-horiz 7 p))))
-s2
-(sheet-print s2)
-(define s3 (sheet-fold s2 (lambda (p) (point-fold-vert 5 p))))
-s3
-(sheet-print s3)
-

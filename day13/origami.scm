@@ -76,10 +76,6 @@
              (display ".")))
        (display "\n"))))
 
-
-
-
-
 ;; (define-record-type <fold-inst>
 ;;   (make-fold-inst type val)
 ;;   fold-inst?
@@ -105,12 +101,21 @@
       ((eqv? #\y type)
        (lambda (p) (point-fold-horiz val p))))))
 
+(define (uniq lst)
+  (fold
+    (lambda (cur out)
+       (if (member cur out) out
+           (cons cur out)))
+   '()
+   lst))
+
 (define (sheet-fold sheet fold-inst)
    (let* ((points (sheet->list sheet))
           (new-points (map
                         fold-inst
                         points))
-          (new-points (filter identity new-points)))
+          (new-points (filter identity new-points))
+          (new-points (uniq new-points)))
      (list->sheet new-points)))
 
 (define (first-fold port)
