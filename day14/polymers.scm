@@ -72,9 +72,7 @@
 
 (define (compare mol mol2)
   (let* (
-         (nul (dbg "mol :" mol))
          (mol (molecule->molecule2 mol))
-         (nul (dbg "molx:" mol))
          (pairs (molecule2-pairs mol))
          (pairs2 (molecule2-pairs mol2)))
      (for-each
@@ -91,12 +89,10 @@
 (define (molecule->molecule2 molecule)
  (let* ((pairs (count-elem
                  (zip molecule (cdr molecule))))
-        (nul (dbg "pairs" pairs))
         (nul (dbg "car pairs" (car pairs)))
         (pairs (map
                  (lambda (x) (cons (make-pair (caar x) (cadar x)) (cdr x)))
                  pairs))
-        (nul (dbg "pairs" pairs))
         (last (list-ref molecule (1- (length molecule)))))
    (make-molecule2 pairs (car molecule) last)))
 
@@ -112,10 +108,10 @@
                  (result (if n (cons n result) result)))
             (loop (cdr molecule) result)))))
 
-(define (decrease! k alist)
+(define (decrease! k alist num)
    (let* ((oldval (assoc k alist))
           (oldval (if oldval (cdr oldval) #f))
-          (newval (if oldval (1- oldval) #f))
+          (newval (if oldval (- oldval num) #f))
           (newval (if (>= newval 1) newval #f)))
      (if newval
          (assoc-set! alist k newval)
@@ -144,7 +140,7 @@
                       (b (pair-b current))
                       (n (cdr n))
                       (BB? (and (char=? a #\B) (char=? b #\B)))
-                      (result (decrease! current result))
+                      (result (decrease! current result val))
                       (result (increase! (make-pair a n) result val))
                       (result (increase! (make-pair n b) result val)))
                   (loop (cdr pairs) result))
@@ -153,8 +149,8 @@
 (define (iterate-polymerisation2 molecule rules times)
   (let loop ((times times) (molecule molecule))
     (begin
-      (dbg "iterate molecule\n" (molecule2->string molecule))
-      (dbg "iterate times" times)
+      (dbg "times: " times)
+      (dbg "mol  : " molecule)
       (if (<= times 0)
           molecule
           (loop (1- times) (one-step2 molecule rules))))))
@@ -184,7 +180,6 @@
       rules))
 
 (define (rules->rules2 rules)
-    (dbg "rules" rules)
     (map
       (lambda (x)
         (begin
@@ -221,7 +216,6 @@
 
 (define (most-minus-least list)
   (let* ((l-and-m (least-and-most list))
-         (nul (dbg "l-and-m" l-and-m))
          (lcount (cdar l-and-m))
          (mcount (cddr l-and-m)))
      (- mcount lcount)))
@@ -250,8 +244,7 @@
          (nul (print-pairs "x" pairs))
          (count-chars (count-pairs->count-chars pairs first last))
          (count-chars (sort count-chars
-                            (lambda (x y) (<= (cdr x) (cdr y)))))
-         (nul (dbg "count-chars sorted" count-chars)))
+                            (lambda (x y) (<= (cdr x) (cdr y))))))
     (- (cdr (list-ref count-chars (1- (length count-chars))))
        (cdar count-chars))))
 
@@ -259,16 +252,12 @@
   (let* ((port (current-input-port))
          (polymer (read-molecule port))
          (polymer2 (molecule->molecule2 polymer))
-         (nul (read-line port))
+         (emptyline (read-line port))
          (rules (read-rules port))
          (rules2 (rules->rules2 rules))
-         (result1 "UNIMP")
-         (result2  "UNIMP"))
-    (let looop ((i 1))
-        (if (> i 3) #t
-            (let* ((polymer (iterate-polymerisation polymer rules i))
-                   (polymer2 (iterate-polymerisation2 polymer2 rules2 i)))
-               (compare polymer polymer2)
-               (looop (1+ i)))))
+         (polymer10 (iterate-polymerisation2 polymer2 rules2 10))
+         (result1 (molecule2->result polymer10))
+         (polymer40 (iterate-polymerisation2 polymer2 rules2 40))
+         (result2 (molecule2->result polymer40)))
     (format #t "result1: ~a\n" result1)
     (format #t "result2: ~a\n" result2)))
