@@ -289,3 +289,53 @@ sortir la réponse au format texte.
 J'en ai profité pour refacto un peu la façon dont je structure mes
 fichiers pour avoir une lib `utils.scm` réutilisable et j'ai joué avec
 un `def-syntax` dans mes tests pour éviter les répétitions.
+
+## Day 14
+
+Très similaire à l'exercice 6. Il faut se rendre compte qu'on peut
+modéliser l'exercice par un compteur de chaque paire existant dans
+la chaine.
+
+La partie 1 est ultra-facile, si on implémente l'algo tel que décrit
+dans l'exercice et les exemples et ça tient. La partie 2 te met juste
+face à l'explosion exponentielle de la chaine de caractère et t'oblige
+à revoir ta structure de données.
+
+Le truc c'est que chaque paire de caractère présente dans les règles
+d'insertion est remplacée par deux nouvelles paires de caractère. Et
+que toutes les paires de caractères identiques sont remplacées de
+façon identique. Donc on a juste à faire un compteur de chaque paire
+(par ex. sous forme d'une table d'association entre la paire et son
+nombre d'occurence) pour incrémenter les compteurs facilement.
+
+Je me suis perdu pour plusieurs raisons.
+
+1. J'ai essayé de tout implémenter sous forme de listes et de
+paires. Les structures de données paraissaient s'adapter comme ça
+mais l'absence de type et l'imbrication des listes de paires de paires
+m'a fait écrit tout un tas de bogues et à un moment tu ne sais plus
+différencier un `cadar` de l'autre). Donc ce que j'ai dit sur le Day8
+est encore valable, parfois il vaut mieux faire un `(define-record-type
+<mypair>` à utiliser à la place d'une paire classique, juste pour
+avoir des erreurs plus explicites.
+
+2. J'ai utilisé du `assoc-set!` pour faire mine d'optimiser, de façon
+très prématurée car ça m'a fait partager des structures de données
+modifiables alors qu'elles étaient partagées. D'autant plus que
+
+3. Comme l'algo me paraissait facile j'ai tardé avant de savoir comment
+visualiser ce qui se passait. D'ailleurs mes visualisations ne sont
+pas top. Ce qui a fini par me débloquer c'est de trouver un moyen de
+comparer l'algo initial avec l'algo "optimisé" pour voir où étaient
+les différences.
+
+4. Pas de réflexion propre pour la deuxième partie. J'ai voulu enchainer
+comme j'étais chaud sur la première partie alors que j'aurais dû
+revenir au papier crayon pour prendre du recul.
+
+5. Du coup mon plus gros bogue était un bogue de logique lié à la
+façon dont je faisais évoluer mes compteurs. Le reste ne faisait que
+rendre ce bogue plus compliqué à comprendre.
+
+J'ai quand même trouvé une solution. Le code n'est pas très élégant
+et mériterait une v2 mais il fonctionne.
