@@ -30,10 +30,18 @@
    (first molecule2-first)
    (last molecule2-last))
 (define-record-type <pair>
-  (make-pair a b)
+  (make-pair-internal l)
   pair?
-  (a pair-a)
-  (b pair-b))
+  (l pair-l))
+
+(define (make-pair a b)
+  (make-pair-internal (list->string (list a b))))
+
+(define (pair-a pair)
+  (string-ref (pair-l pair) 0))
+
+(define (pair-b pair)
+  (string-ref (pair-l pair) 1))
 
 (define (molecule2->string molecule)
   (let* ((pairs (molecule2-pairs molecule)))
@@ -89,7 +97,6 @@
 (define (molecule->molecule2 molecule)
  (let* ((pairs (count-elem
                  (zip molecule (cdr molecule))))
-        (nul (dbg "car pairs" (car pairs)))
         (pairs (map
                  (lambda (x) (cons (make-pair (caar x) (cadar x)) (cdr x)))
                  pairs))
@@ -147,8 +154,6 @@
 (define (iterate-polymerisation2 molecule rules times)
   (let loop ((times times) (molecule molecule))
     (begin
-      (dbg "times: " times)
-      (dbg "mol  : " molecule)
       (if (<= times 0)
           molecule
           (loop (1- times) (one-step2 molecule rules))))))
@@ -228,7 +233,6 @@
                          (num (cdr cur))
                          (cur (car cur))
                          (a (pair-a cur))
-                         (b (pair-b cur))
                          (chars (increase! a chars num))
                          (pairs (cdr pairs)))
                      (loop pairs chars))))))
@@ -239,7 +243,6 @@
   (let* ((pairs (molecule2-pairs molecule))
          (first (molecule2-first molecule))
          (last  (molecule2-last molecule))
-         (nul (print-pairs "x" pairs))
          (count-chars (count-pairs->count-chars pairs first last))
          (count-chars (sort count-chars
                             (lambda (x y) (<= (cdr x) (cdr y))))))
