@@ -52,11 +52,21 @@ CN -> C")
 (test-equal '((#\N . #\N) . #\C) (line->rule "NN -> C"))
 (test-equal #\B (cdr (assoc '(#\C . #\H) (read-rules (open-input-string rule-bloc-string)))))
 (test-equal '(#\N #\N #\C #\B) (read-molecule (open-input-string example-polymer-string)))
-(test-equal '((#\N #\N) (#\N #\C) (#\C #\B)) (molecule->molecule2 (read-molecule (open-input-string example-polymer-string))))
+
+(define (mysort l)
+  (sort
+    l
+    (lambda (a b)
+        (cond
+          ((= (cdr a) (cdr b))
+           (if (char=? (caar a) (caar b))
+               (char<=? (cadar a) (cadar b))
+               (char<=? (caar a) (caar b))))
+          (else (<= (cdr a) (cdr b)))))))
+(test-equal
+ (mysort '(((#\N #\N) . 1) ((#\N #\C) . 1) ((#\C #\B) . 1)))
+ (mysort (molecule->molecule2 (read-molecule (open-input-string example-polymer-string)))))
 (test-end "parsing input")
-
-
 
 (test-begin "some steps")
 (test-end "some steps")
-

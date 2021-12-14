@@ -34,6 +34,18 @@
                  (result (if n (cons n result) result)))
             (loop (cdr molecule) result)))))
 
+(define (one-step2 molecule rules)
+  (let loop ((molecule molecule) (result '()))
+      (if (<= (length molecule) 1)
+          (reverse (cons (car molecule) result))
+          (let* ((a (car molecule))
+                 (b (cadr molecule))
+                 (n (assoc (cons a b) rules))
+                 (n (if n (cdr n) n))
+                 (result (cons a result))
+                 (result (if n (cons n result) result)))
+            (loop (cdr molecule) result)))))
+
 (define (iterate-polymerisation molecule rules times)
   (let loop ((times times) (molecule molecule))
       (if (<= times 0)
@@ -46,7 +58,8 @@
     molecule))
 
 (define (molecule->molecule2 molecule)
-   (zip molecule (cdr molecule)))
+   (count-elem
+     (zip molecule (cdr molecule))))
 
 (define (line->rule line)
    (let* ((line line)
