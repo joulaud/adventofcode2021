@@ -11,6 +11,7 @@
     #:use-module (srfi srfi-41) ; Streams
     #:use-module (srfi srfi-43)) ; Vectors iterators
 
+
 (use-modules (ice-9 rdelim))
 (use-modules (ice-9 match))
 (use-modules (ice-9 format))
@@ -20,7 +21,7 @@
 (use-modules (srfi srfi-9 gnu)) ; immutable records
 (use-modules (srfi srfi-41))
 
-(define (dbg t v) (format #t "~s: ~a\n" t v) (force-output))
+(define (dbg t v) (format #t "~a~a\n" t v) (force-output))
 
 (define-record-type <molecule2>
    (make-molecule2 pairs first last)
@@ -34,13 +35,66 @@
   (a pair-a)
   (b pair-b))
 
+(define (molecule2->string molecule)
+  (let* ((pairs (molecule2-pairs molecule)))
+    (pairs->string pairs)))
+
+(define (pairs->string pairs)
+      (fold
+         (lambda (x acc)
+           (let* ((pair (car x))
+                  (val (cdr x))
+                  (a (pair-a pair))
+                  (b (pair-b pair)))
+             (string-append
+              acc (list->string (list a b))
+              ": " (number->string val) "\n")))
+         ""
+         pairs))
+
+(define (mysort l)
+  (sort
+    l
+    (lambda (x y)
+        (cond
+          ((= (cdr x) (cdr y))
+           (if (char=?  (pair-a (car x)) (pair-a (car y)))
+               (char<=? (pair-b (car x)) (pair-b (car y)))
+               (char<=? (pair-a (car x)) (pair-a (car y)))))
+          (else (<= (cdr x) (cdr y)))))))
+
+(define (print-pairs text pairs)
+  (format #t text)
+  (for-each
+    (lambda (x)
+        (format #t "~a,~a: ~a\n" (pair-a (car x)) (pair-b (car x)) (cdr x)))
+   (mysort pairs)))
+
+(define (compare mol mol2)
+  (let* (
+         (nul (dbg "mol :" mol))
+         (mol (molecule->molecule2 mol))
+         (nul (dbg "molx:" mol))
+         (pairs (molecule2-pairs mol))
+         (pairs2 (molecule2-pairs mol2)))
+     (for-each
+        (lambda (pair)
+            (let* ((val (cdr pair))
+                   (pair (car pair))
+                   (pair2 (or (assoc pair pairs2) (cons pair #f)))
+                   (val2 (cdr pair2))
+                   (pair (cons (pair-a pair) (pair-b pair))))
+              (format #t "~a: ~a ~a\n" pair val val2)))
+        pairs)))
+
+
 (define (molecule->molecule2 molecule)
  (let* ((pairs (count-elem
                  (zip molecule (cdr molecule))))
         (nul (dbg "pairs" pairs))
         (nul (dbg "car pairs" (car pairs)))
         (pairs (map
-                 (lambda (x) (cons (cons (caar x) (cadar x)) (cdr x)))
+                 (lambda (x) (cons (make-pair (caar x) (cadar x)) (cdr x)))
                  pairs))
         (nul (dbg "pairs" pairs))
         (last (list-ref molecule (1- (length molecule)))))
@@ -60,51 +114,46 @@
 
 (define (decrease! k alist)
    (let* ((oldval (assoc k alist))
-          (oldval (if oldval (cdr oldval) #f)))
-     (if oldval
-         (assoc-set! alist k (1- oldval))
-         alist)))
+          (oldval (if oldval (cdr oldval) #f))
+          (newval (if oldval (1- oldval) #f))
+          (newval (if (>= newval 1) newval #f)))
+     (if newval
+         (assoc-set! alist k newval)
+         (alist-delete! k alist))))
 
-(define (increase! k alist)
+(define (increase! k alist num)
    (let* ((oldval (assoc k alist)))
      (if oldval
-         (assoc-set! alist k (1+ (cdr oldval)))
-         (assoc-set! alist k 1))))
+         (assoc-set! alist k (+ num (cdr oldval)))
+         (assoc-set! alist k num))))
 
 (define (one-step2 molecule rules)
- (dbg "molecule" molecule)
  (let* ((pairs (molecule2-pairs molecule))
         (first (molecule2-first molecule))
         (last (molecule2-last molecule)))
-   (let loop ((pairs pairs) (result pairs))
-    (begin
-     (dbg "result" result)
+   (let loop ((pairs pairs) (result (alist-copy pairs)))
      (if (null? pairs)
          (make-molecule2 result first last)
-         (let* ((current (caar pairs))
-                (nul (dbg "current" current))
+         (let* ((current (car pairs))
+                (val (cdr current))
+                (current (car current))
                 (rest (cdr pairs))
-                (n (assoc current rules))
-                (nul (dbg "n" n))
-                (nul (dbg "rules" rules)))
+                (n (assoc current rules)))
            (if n
-               (let* ((a (car current))
-                      (b (cdr current))
+               (let* ((a (pair-a current))
+                      (b (pair-b current))
                       (n (cdr n))
+                      (BB? (and (char=? a #\B) (char=? b #\B)))
                       (result (decrease! current result))
-                      (result (increase! (cons a n) result))
-                      (result (increase! (cons n b) result)))
+                      (result (increase! (make-pair a n) result val))
+                      (result (increase! (make-pair n b) result val)))
                   (loop (cdr pairs) result))
-               (loop (cdr pairs) result))))))))
+               (loop (cdr pairs) result)))))))
 
-
-'( (((C . H) . B) ((H . H) . N) ((C . B) . H) ((N . H) . C) ((H . B) . C) ((H . C) . B) ((H . N) . C) ((N . N) . C) ((B . H) . H) ((N . C) . B) ((N . B) . B) ((B . N) . B) ((B . B) . N) ((B . C) . B) ((C . C) . N) ((C . N) . C)))
-
-  
 (define (iterate-polymerisation2 molecule rules times)
   (let loop ((times times) (molecule molecule))
     (begin
-      (dbg "iterate molecule" molecule)
+      (dbg "iterate molecule\n" (molecule2->string molecule))
       (dbg "iterate times" times)
       (if (<= times 0)
           molecule
@@ -134,6 +183,18 @@
          (rules (map line->rule bloc)))
       rules))
 
+(define (rules->rules2 rules)
+    (dbg "rules" rules)
+    (map
+      (lambda (x)
+        (begin
+          (let* ((pair (car x))
+                 (value (cdr x))
+                 (a (car pair))
+                 (b (cdr pair)))
+            (cons (make-pair a b) value))))
+      rules))
+
 (define (count-elem list)
   (let loop ((list list) (res '()))
        (if (null? list) res
@@ -160,54 +221,54 @@
 
 (define (most-minus-least list)
   (let* ((l-and-m (least-and-most list))
+         (nul (dbg "l-and-m" l-and-m))
          (lcount (cdar l-and-m))
          (mcount (cddr l-and-m)))
      (- mcount lcount)))
 
 (define (count-pairs->count-chars pairs first last)
- (dbg "pairs" pairs)
  (let* ((char-count
          (let loop ((pairs pairs) (chars '()))
              (begin
               (if (null? pairs)
                   chars
                   (let* ((cur (car pairs))
-                         (a (car cur))
-                         (b (cdr cur))
-                         (chars (increase! a chars))
-                         (chars (increase! b chars))
+                         (num (cdr cur))
+                         (cur (car cur))
+                         (a (pair-a cur))
+                         (b (pair-b cur))
+                         (chars (increase! a chars num))
                          (pairs (cdr pairs)))
                      (loop pairs chars))))))
-        (char-count (map
-                      (lambda (x) (cons (car x) (quotient (cdr x) 2)))
-                      char-count))
-        (char-count (increase! first char-count))
-        (char-count (increase! last char-count)))
+        (char-count (increase! last char-count 1)))
    char-count))
 
 (define (molecule2->result molecule)
-  (dbg "Xmolecule" molecule)
   (let* ((pairs (molecule2-pairs molecule))
          (first (molecule2-first molecule))
          (last  (molecule2-last molecule))
-         (count-chars (count-pairs->count-chars pairs first last)))
-     (most-minus-least count-chars)))
+         (nul (print-pairs "x" pairs))
+         (count-chars (count-pairs->count-chars pairs first last))
+         (count-chars (sort count-chars
+                            (lambda (x y) (<= (cdr x) (cdr y)))))
+         (nul (dbg "count-chars sorted" count-chars)))
+    (- (cdr (list-ref count-chars (1- (length count-chars))))
+       (cdar count-chars))))
 
 (define-public (main args)
   (let* ((port (current-input-port))
          (polymer (read-molecule port))
          (polymer2 (molecule->molecule2 polymer))
-         (nul (dbg "polymer" polymer))
-         (nul (dbg "polymer2" polymer2))
          (nul (read-line port))
          (rules (read-rules port))
-         (step5 (iterate-polymerisation polymer rules 5))
-         (step5-result (most-minus-least step5))
-         (step5-2 (iterate-polymerisation2 polymer2 rules 5))
-         (step5-result-2 (molecule2->result step5-2))
-         (nul (dbg "step5-result" step5-result))
-         (nul (dbg "step5-result-2" step5-result-2))
+         (rules2 (rules->rules2 rules))
          (result1 "UNIMP")
-         (result2 "UNIMP"))
+         (result2  "UNIMP"))
+    (let looop ((i 1))
+        (if (> i 3) #t
+            (let* ((polymer (iterate-polymerisation polymer rules i))
+                   (polymer2 (iterate-polymerisation2 polymer2 rules2 i)))
+               (compare polymer polymer2)
+               (looop (1+ i)))))
     (format #t "result1: ~a\n" result1)
     (format #t "result2: ~a\n" result2)))
