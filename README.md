@@ -339,3 +339,17 @@ rendre ce bogue plus compliqué à comprendre.
 
 J'ai quand même trouvé une solution. Le code n'est pas très élégant
 et mériterait une v2 mais il fonctionne.
+
+```
+export GUILE_LOAD_PATH=..:$GUILE_LOAD_PATH
+# Tests unitaires (très partiels
+guile day14/tests.scm
+# Tests d'exemples
+guile -e '(adventofcode2021 day14 polymers)' -s day14/polymers.scm <day14/inputs/example.txt
+# Résultats
+guile -e '(adventofcode2021 day14 polymers)' -s day14/polymers.scm <day14/inputs/input
+
+# Résultats (deuxième version un peu nettoyée mais pas trop)
+export GUILE_LOAD_PATH=..:$GUILE_LOAD_PATH
+guile -e '(adventofcode2021 day14 polymers2)' -s day14/polymers2.scm <day14/inputs/input
+```
