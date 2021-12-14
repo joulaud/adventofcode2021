@@ -47,6 +47,7 @@ CN -> C")
 (import-private read-rules)
 (import-private read-molecule)
 (import-private molecule->molecule2)
+(import-private molecule2-pairs)
 
 (test-begin "parsing input")
 (test-equal '((#\N . #\N) . #\C) (line->rule "NN -> C"))
@@ -65,8 +66,12 @@ CN -> C")
           (else (<= (cdr a) (cdr b)))))))
 (test-equal
  (mysort '(((#\N #\N) . 1) ((#\N #\C) . 1) ((#\C #\B) . 1)))
- (mysort (molecule->molecule2 (read-molecule (open-input-string example-polymer-string)))))
+ (mysort (molecule2-pairs (molecule->molecule2 (read-molecule (open-input-string example-polymer-string))))))
 (test-end "parsing input")
 
+(test-begin "representation equivalence")
+(test-end "representation equivalence")
+
 (test-begin "some steps")
+
 (test-end "some steps")
