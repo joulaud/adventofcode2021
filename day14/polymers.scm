@@ -45,6 +45,9 @@
          (molecule (string->list line)))
     molecule))
 
+(define (molecule->molecule2 molecule)
+   (zip molecule (cdr molecule)))
+
 (define (line->rule line)
    (let* ((line line)
           (separator (string-contains line " -> "))
@@ -106,6 +109,7 @@
          (nul (dbg "step4" (list->string step4)))
          (nul (dbg "step5" (list->string step5)))
          (step10 (iterate-polymerisation polymer rules 10))
+         (step40 (iterate-polymerisation polymer rules 40))
          (nul (dbg "count" (count-elem step10)))
          (result1 (most-minus-least step10))
          (result2 "UNIMP"))
