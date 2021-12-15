@@ -166,7 +166,7 @@
           (dist (make-array 'inf (1+ (coord-line endloc)) (1+ (coord-col endloc))))
           (_ (array-set! dist 0 (coord-line endloc) (coord-col endloc)))
           (stillhere (make-array #t (1+ (coord-line endloc)) (1+ (coord-col endloc)))))
-     (compute-distances-internal cavemap dist stillhere endloc 0)))
+     (compute-distances-internal cavemap dist stillhere endloc 0 (* (1+ (coord-line endloc)) (1+ (coord-col endloc))))))
 
 (define (howmany stillhere)
    (let ((count 0))
@@ -176,7 +176,7 @@
        stillhere)
      count))
 
-(define (compute-distances-internal cavemap distances stillhere endloc count)
+(define (compute-distances-internal cavemap distances stillhere endloc count stillherecount)
  ;; Here we use Dijkstra's algorithm as I understood it by a cursory glance at
  ;; http://algowiki-project.org/en/Dijkstra's_algorithm#Computational_kernel_of_the_algorithm
  ;; https://www.boost.org/doc/libs/1_78_0/libs/graph/doc/dijkstra_shortest_paths.html
@@ -187,14 +187,16 @@
     ((not cur) distances) ;; we did not find any minimum stillhere, end of algorithm
     (else
       ;(display count)
-      (if (= 0 (remainder count 100))
-          (dbg "stillhere=" (howmany stillhere)))
+      (if (= 0 (remainder count 500))
+          (begin
+           (dbg "stillherecount=" stillherecount)))
       (let ((_ (array-set! stillhere #f (coord-line cur) (coord-col cur)))
+            (stillherecount (1- stillherecount))
             (neighbours (neighbours cur endloc)))
         (let loop ((neighbours neighbours)
                    (distances distances))
              (if (null? neighbours)
-                 (compute-distances-internal cavemap distances stillhere endloc (1+ count))
+                 (compute-distances-internal cavemap distances stillhere endloc (1+ count) stillherecount)
                  (let* ((curneighbour (car neighbours))
                         (rest (cdr neighbours))
                         (proposed-distance (+ (cavemap-refloc distances cur) (cavemap-refloc cavemap cur)))
