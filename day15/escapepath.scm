@@ -60,7 +60,9 @@
 (define cavemap-ref array-ref)
 (define (cavemap-refloc cavemap loc)
      (array-ref cavemap (coord-line loc) (coord-col loc)))
-
+(define (cavemap-setloc! cavemap val loc)
+     (array-set! cavemap val (coord-line loc) (coord-col loc))
+     cavemap)
 
 
 (define (ingrid? maxcoord)
@@ -131,7 +133,74 @@
                 neighbours)))
            minrisk)))))
 
+(define (inf<=? a b)
+    (cond
+     ((eqv? a 'inf)
+      (if (eqv? b 'inf) #t #f))
+     ((eqv? b 'inf) #t)
+     (else (<= a b))))
+
+(define (minimum-in-array a stillhere)
+  (let* ((dims (array-dimensions a))
+         (maxl (car dims))
+         (maxc (cadr dims))
+         (lres #f)
+         (cres #f)
+         (valmin 'inf))
+    (do ((i 0 (1+ i)))
+        ((>= i maxl))
+      (do ((j 0 (1+ j)))
+          ((>= j maxc))
+        (if (array-ref stillhere i j)
+          (let* ((val (array-ref a i j))
+                 (ismin? (inf<=? val valmin)))
+           (if ismin?
+             (begin
+               (set! lres i)
+               (set! cres j)
+               (set! valmin val)))))))
+    (if lres (make-coord lres cres) #f)))
+
+(define (compute-distances cavemap)
+   (let* ((endloc (array->maxcoord cavemap))
+          (dist (make-array 'inf (1+ (coord-line endloc)) (1+ (coord-col endloc))))
+          (_ (array-set! dist 0 (coord-line endloc) (coord-col endloc)))
+          (stillhere (make-array #t (1+ (coord-line endloc)) (1+ (coord-col endloc)))))
+     (compute-distances-internal cavemap dist stillhere endloc)))
+
+(define (compute-distances-internal cavemap distances stillhere endloc)
+ ;; Here we use Dijkstra's algorithm as I understood it by a cursory glance at
+ ;; http://algowiki-project.org/en/Dijkstra's_algorithm#Computational_kernel_of_the_algorithm
+ ;; https://www.boost.org/doc/libs/1_78_0/libs/graph/doc/dijkstra_shortest_paths.html
+ ;; It does not uses a real queue but only a marker (in STILLHERE)
+ ;; and at each step must browse all map to find the current nearest point to the end.
+ (let ((cur (minimum-in-array distances stillhere)))
+   (cond
+    ((not cur) distances) ;; we did not find any minimum stillhere, end of algorithm
+    (else
+      (let ((_ (array-set! stillhere #f (coord-line cur) (coord-col cur)))
+            (neighbours (neighbours cur endloc)))
+        (let loop ((neighbours neighbours)
+                   (distances distances))
+             (if (null? neighbours)
+                 (compute-distances-internal cavemap distances stillhere endloc)
+                 (let* ((curneighbour (car neighbours))
+                        (rest (cdr neighbours))
+                        (proposed-distance (+ (cavemap-refloc distances cur) (cavemap-refloc cavemap cur)))
+                        (previous-distance (cavemap-refloc distances curneighbour))
+                        (better? (inf<=? proposed-distance previous-distance))
+                        (distances (if better?
+                                       (cavemap-setloc! distances proposed-distance curneighbour)
+                                       distances)))
+                    (loop rest distances)))))))))
+
+
 (define (lowest-risk cavemap)
+  (let* ((distances (compute-distances cavemap))
+         (lowestrisk (array-ref distances 0 0)))
+    lowestrisk))
+
+(define (lowest-risk-old cavemap)
   (let* ((start-loc (make-coord 0 0))
          (start-val (cavemap-refloc cavemap start-loc))
          (lowestrisk (lowest-risk-internal cavemap '() start-loc (- start-val) #f 0)))
