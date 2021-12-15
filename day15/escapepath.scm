@@ -230,18 +230,17 @@
          (lsize (car dims))
          (csize (cadr dims))
          (bigger (make-array #f (* 5 lsize) (* 5 csize))))
-    (array-for-each-index
+    (array-for-each-only-index
       bigger
-      (lambda (l c _)
+      (lambda (l c)
        (begin
-        (let* ((verticaltile (quotient l 10))
-               (horiztile (quotient c 10))
+        (let* ((verticaltile (quotient l lsize))
+               (horiztile (quotient c csize))
                (ratio (+ verticaltile horiztile))
-               (val (array-ref cavemap (remainder l 10) (remainder c 10)))
+               (val (array-ref cavemap (remainder l lsize) (remainder c csize)))
                (val (+ ratio val))
                (val (modulo9 val)))
-         (array-set! bigger val l c))))
-      (lambda (l) #t))
+         (array-set! bigger val l c)))))
     bigger))
 
 (define-public (main args)

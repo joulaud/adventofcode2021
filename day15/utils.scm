@@ -39,7 +39,15 @@
         (proc-cell i j (array-ref a i j)))
       (proc-endofline i))))
 
-
+(define-public (array-for-each-only-index a proc-cell)
+  (let* ((dims (array-dimensions a))
+         (maxl (car dims))
+         (maxc (cadr dims)))
+    (do ((i 0 (1+ i)))
+        ((>= i maxl))
+      (do ((j 0 (1+ j)))
+          ((>= j maxc))
+        (proc-cell i j)))))
 
 (define-public (print-array a)
   (array-for-each-index
