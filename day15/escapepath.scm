@@ -154,11 +154,11 @@
         (if (array-ref stillhere i j)
           (let* ((val (array-ref a i j))
                  (ismin? (inf<=? val valmin)))
-           (if ismin?
-             (begin
-               (set! lres i)
-               (set! cres j)
-               (set! valmin val)))))))
+              (if ismin?
+                (begin
+                  (set! lres i)
+                  (set! cres j)
+                  (set! valmin val)))))))
     (if lres (make-coord lres cres) #f)))
 
 (define (compute-distances cavemap)
@@ -166,9 +166,17 @@
           (dist (make-array 'inf (1+ (coord-line endloc)) (1+ (coord-col endloc))))
           (_ (array-set! dist 0 (coord-line endloc) (coord-col endloc)))
           (stillhere (make-array #t (1+ (coord-line endloc)) (1+ (coord-col endloc)))))
-     (compute-distances-internal cavemap dist stillhere endloc)))
+     (compute-distances-internal cavemap dist stillhere endloc 0)))
 
-(define (compute-distances-internal cavemap distances stillhere endloc)
+(define (howmany stillhere)
+   (let ((count 0))
+     (array-for-each
+       (lambda (x)
+           (if x (set! count (1+ count))))
+       stillhere)
+     count))
+
+(define (compute-distances-internal cavemap distances stillhere endloc count)
  ;; Here we use Dijkstra's algorithm as I understood it by a cursory glance at
  ;; http://algowiki-project.org/en/Dijkstra's_algorithm#Computational_kernel_of_the_algorithm
  ;; https://www.boost.org/doc/libs/1_78_0/libs/graph/doc/dijkstra_shortest_paths.html
@@ -178,12 +186,15 @@
    (cond
     ((not cur) distances) ;; we did not find any minimum stillhere, end of algorithm
     (else
+      ;(display count)
+      (if (= 0 (remainder count 100))
+          (dbg "stillhere=" (howmany stillhere)))
       (let ((_ (array-set! stillhere #f (coord-line cur) (coord-col cur)))
             (neighbours (neighbours cur endloc)))
         (let loop ((neighbours neighbours)
                    (distances distances))
              (if (null? neighbours)
-                 (compute-distances-internal cavemap distances stillhere endloc)
+                 (compute-distances-internal cavemap distances stillhere endloc (1+ count))
                  (let* ((curneighbour (car neighbours))
                         (rest (cdr neighbours))
                         (proposed-distance (+ (cavemap-refloc distances cur) (cavemap-refloc cavemap cur)))
@@ -231,12 +242,11 @@
       (lambda (l) #t))
     bigger))
 
-
-
 (define-public (main args)
   (let* ((cavemap (read-cavemap (current-input-port)))
          (result1 (lowest-risk cavemap))
-         (result2 "UNIMP"))
+         (bigger (bigger-cavemap cavemap))
+         (result2 (lowest-risk bigger)))
      (format #t "result1: ~a\n" result1)
      (format #t "result2: ~a\n" result2)))
 

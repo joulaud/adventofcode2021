@@ -353,3 +353,21 @@ guile -e '(adventofcode2021 day14 polymers)' -s day14/polymers.scm <day14/inputs
 export GUILE_LOAD_PATH=..:$GUILE_LOAD_PATH
 guile -e '(adventofcode2021 day14 polymers2)' -s day14/polymers2.scm <day14/inputs/input
 ```
+
+## Day 15
+
+De l'algorithmique brutale aujourd'hui.
+
+J'ai commencé par un parcours en profondeur qui avait une explosion
+combinatoire énorme et qui n'aurait jamais fini avant la fin des
+temps. Mais ça m'avait quand même permis de passer le premier exercice
+sur l'exemple, mais pas sur le véritable input qui était un peu
+plus gros.
+
+Alors j'ai essayé de recomprendre comment fonctionnait l'algorithme
+de Dijkstra mais mes souvenirs de Fac sont très loin. Alors j'ai
+implémenté ma version sous-optimale de cet algo et c'est ça qui tourne
+en ce moment. Sauf bogue je devrais avoir un résultat dans deux heures
+et demi si mon PC continue à tourner comme ça.
+
+C'est très clairement sous-optimal mais bon on s'en contentera.
