@@ -206,9 +206,38 @@
          (lowestrisk (lowest-risk-internal cavemap '() start-loc (- start-val) #f 0)))
     lowestrisk))
 
+(define (modulo9 x)
+ (let* ((minus1 (1- x))
+        (rem (remainder minus1 9))
+        (res (1+ rem)))
+    res))
+
+(define (bigger-cavemap cavemap)
+  (let* ((dims (array-dimensions cavemap))
+         (lsize (car dims))
+         (csize (cadr dims))
+         (bigger (make-array #f (* 5 lsize) (* 5 csize))))
+    (array-for-each-index
+      bigger
+      (lambda (l c _)
+       (begin
+        (let* ((verticaltile (quotient l 10))
+               (horiztile (quotient c 10))
+               (ratio (+ verticaltile horiztile))
+               (val (array-ref cavemap (remainder l 10) (remainder c 10)))
+               (val (+ ratio val))
+               (val (modulo9 val)))
+         (array-set! bigger val l c))))
+      (lambda (l) #t))
+    bigger))
+
+
+
 (define-public (main args)
   (let* ((cavemap (read-cavemap (current-input-port)))
          (result1 (lowest-risk cavemap))
          (result2 "UNIMP"))
      (format #t "result1: ~a\n" result1)
      (format #t "result2: ~a\n" result2)))
+
+
