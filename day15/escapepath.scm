@@ -28,6 +28,48 @@
          (x (stream-of-lines->array line->numlist x)))
     x))
 
+(define-record-type <coord>
+    (make-coord line col)
+    coord?
+    (line coord-line)
+    (col coord-col))
+(define (coord->pair coord)
+   (cons (coord-line coord) (coord-col coord)))
+(define (pair->coord pair)
+   (make-coord (car pair) (cdr pair)))
+(define (array->gridsize grid)
+  (let ((dims (array-dimensions grid)))
+   (make-coord (car dims) (cadr dims))))
+
+(define (ingrid? gridsize)
+ (lambda (loc)
+  (let* (
+         (l (coord-line loc))
+         (c (coord-col loc))
+         (lmax (coord-line gridsize))
+         (cmax (coord-col gridsize)))
+    (and (>= l 0)
+         (>= c 0)
+         (<= l lmax)
+         (<= c cmax)))))
+
+(define (neighbours loc gridsize)
+  (let* ((up    '(-1 . 0))
+         (down  '(1 . 0))
+         (left  '(0 . -1))
+         (right '(0 . 1))
+         (l (coord-line loc))
+         (c (coord-col loc))
+         (neighbours (map
+                       (lambda (direction)
+                           (make-coord (+ l (car direction))
+                                       (+ c (cdr direction))))
+                       (list up down left right)))
+         (neighbours (filter
+                      (ingrid? gridsize)
+                      neighbours)))
+     neighbours))
+
 (define cavemap-ref array-ref)
 
 (define-public (main args)
