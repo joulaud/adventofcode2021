@@ -36,6 +36,21 @@
   (let ((dims (array-dimensions grid)))
    (make-coord (1- (car dims)) (1- (cadr dims)))))
 
+(define (print-visited visited maxcoord)
+  (let* ((lmax (coord-line maxcoord))
+         (cmax (coord-col  maxcoord)))
+   (let loop ((l 0))
+      (if (<= l lmax)
+          (begin
+           (let loopc ((c 0))
+            (if (<= c cmax)
+                (let* ((val (assoc (make-coord l c) visited))
+                       (val (and val (cdr val)))
+                       (val (if val "#" ".")))
+                  (display val)
+                  (loopc (1+ c)))))
+           (display "\n")
+           (loop (1+ l)))))))
 
 (define (read-cavemap port)
   (let* ((x (stream-of-lines port))
@@ -71,7 +86,7 @@
                        (lambda (direction)
                            (make-coord (+ l (car direction))
                                        (+ c (cdr direction))))
-                       (list up down left right)))
+                       (list down right up left)))
          (neighbours (filter
                       (ingrid? gridsize)
                       neighbours)))
@@ -84,31 +99,41 @@
      (b b)
      (else #f)))
 
-(define (lowest-risk cavemap visited loc initialrisk)
+(define (lowest-risk-internal cavemap visited loc initialrisk minpathfound)
+   ;;(dbg "F()minpathfound=" minpathfound)
    (let* ((endloc (array->maxcoord cavemap))
           (currisk (cavemap-refloc cavemap loc))
           (updatedrisk (+ currisk initialrisk))
+          ;;(_ (dbg "loc,cur,risk" (list loc currisk updatedrisk)))
           (curvisited (assoc loc visited))
           (curvisited? (and curvisited (cdr curvisited)))
           (end? (equal? loc endloc))
           (updatedvisited (acons loc #t visited))
           (neighbours (neighbours loc endloc)))
+     ;;(print-visited updatedvisited endloc)
+     ;;(display "\n")
      (cond
       (curvisited? #f)
       (end? updatedrisk)
+      ((and minpathfound (>= updatedrisk minpathfound)) minpathfound)
       (else
-       (let* ((subrisks
-               (map
-                (lambda (x) (lowest-risk cavemap updatedvisited x updatedrisk))
-                neighbours))
-              (minrisk (fold ormin #f subrisks)))
+       (let* ((minrisk
+               (fold
+                (lambda (x minpathfound)
+                    ;;(dbg "minpathfound" minpathfound)
+                    (let* ((x (lowest-risk-internal cavemap updatedvisited x updatedrisk minpathfound))
+                           (x (ormin minpathfound x)))
+                      ;;(dbg "x=" x)
+                      x))
+                minpathfound
+                neighbours)))
            minrisk)))))
 
-
-
-
-
-
+(define (lowest-risk cavemap)
+  (let* ((start-loc (make-coord 0 0))
+         (start-val (cavemap-refloc cavemap start-loc))
+         (lowestrisk (lowest-risk-internal cavemap '() start-loc (- start-val) #f)))
+    lowestrisk))
 
 (define-public (main args)
   (let* ((result1 "UNIMP")

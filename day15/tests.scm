@@ -58,9 +58,10 @@
 (test-end "neighbours")
 
 ;; import internal functions of module to test
+(import-private lowest-risk-internal)
 (import-private lowest-risk)
 
 (test-begin "lowest-risk")
-(test-equal 2 (lowest-risk example-cavemap '() (make-coord 8 8) 0))
-(test-equal 40 (lowest-risk example-cavemap '() (make-coord 0 0) 0))
-test-end "lowest-risk"
+(test-equal 4 (lowest-risk-internal example-cavemap '() (make-coord 8 8) 0 #f))
+(test-equal 40 (lowest-risk example-cavemap))
+(test-end "lowest-risk")
