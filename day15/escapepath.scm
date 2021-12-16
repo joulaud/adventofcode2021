@@ -201,7 +201,7 @@
        stillhere)
      count))
 
-(define (compute-distances-internal cavemap _ stillhere endloc count stillherecount stillherelastcols to-be-evaluated)
+(define (compute-distances-internal cavemap distances stillhere endloc count stillherecount stillherelastcols to-be-evaluated)
  ;; Here we use Dijkstra's algorithm as I understood it by a cursory glance at
  ;; http://algowiki-project.org/en/Dijkstra's_algorithm#Computational_kernel_of_the_algorithm
  ;; https://www.boost.org/doc/libs/1_78_0/libs/graph/doc/dijkstra_shortest_paths.html
@@ -209,6 +209,7 @@
  ;; and at each step must scan all map to find the current nearest point to the end.
 
  ;; - CAVEMAP is the problem description, we never change it
+ ;; - DISTANCES is the result we are building with distances to END
  ;; - ENDLOC is the position of END
  ;; - COUNT and STILLHERECOUNT are just debugging counters to display
  ;;   some progression info while running
@@ -222,7 +223,7 @@
         (cur-distance    (cdr cur-elem))
         (cur             (car cur-elem)))
    (cond
-    ((equal? cur (make-coord 0 0)) cur-distance) ;; early exit, we found the minimum from start point
+    ((equal? cur (make-coord 0 0)) distances) ;; early exit, we found the minimum from start point
     (else
       ;(display count)
       (if (= 0 (remainder count 100))
@@ -232,22 +233,28 @@
             (stillherecount (1- stillherecount))
             (neighbours (filter (lambda (x) (cavemap-refloc stillhere x)) (neighbours cur endloc))))
         (let loop ((neighbours neighbours)
+                   (distances distances)
                    (to-be-evaluated to-be-evaluated))
              (if (null? neighbours)
-                 (compute-distances-internal cavemap #f stillhere endloc (1+ count) stillherecount stillherelastcols to-be-evaluated)
+                 (compute-distances-internal cavemap distances stillhere endloc (1+ count) stillherecount stillherelastcols to-be-evaluated)
                  (let* ((curneighbour (car neighbours))
                         (rest (cdr neighbours))
-                        (proposed-distance (+ cur-distance (cavemap-refloc cavemap cur)))
-                        (previous-distance (assoc curneighbour to-be-evaluated))
-                        (better? (or (not previous-distance) (<= proposed-distance (cdr previous-distance))))
+                        (proposed-distance (+ (cavemap-refloc distances cur) (cavemap-refloc cavemap cur)))
+                        (previous-distance (cavemap-refloc distances curneighbour))
+                        (better? (inf<=? proposed-distance previous-distance))
+                        (distances (if better?
+                                       (cavemap-setloc! distances proposed-distance curneighbour)
+                                       distances))
                         (to-be-evaluated (cond
                                           ((and better? (cavemap-refloc stillhere curneighbour))
                                            (assoc-set! to-be-evaluated curneighbour proposed-distance))
                                           (else to-be-evaluated))))
-                    (loop rest to-be-evaluated)))))))))
+                    (loop rest distances to-be-evaluated)))))))))
 
 (define (lowest-risk cavemap)
-   (compute-distances cavemap))
+  (let* ((distances (compute-distances cavemap))
+         (lowestrisk (array-ref distances 0 0)))
+    lowestrisk))
 
 (define (lowest-risk-old cavemap)
   (let* ((start-loc (make-coord 0 0))
