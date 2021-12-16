@@ -23,15 +23,6 @@
 
 (define (dbg t v) (format #t "~a~a\n" t v) (force-output))
 
-
-
-(define-public stream-of-packets
-  (stream-lambda (strm)
-    (cond ((stream-null? strm) strm)
-          (else (let* (
-                       (bits (hex->bits hex)))
-                 (stream-append (list->stream bits) (stream-of-bits (stream-cdr strm))))))))
-
 (define (stream-carnumber strm l)
    (let loop ((strm strm) (l l) (acc 0))
        (cond
