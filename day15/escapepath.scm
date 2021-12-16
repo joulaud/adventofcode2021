@@ -190,7 +190,16 @@
  ;; http://algowiki-project.org/en/Dijkstra's_algorithm#Computational_kernel_of_the_algorithm
  ;; https://www.boost.org/doc/libs/1_78_0/libs/graph/doc/dijkstra_shortest_paths.html
  ;; It does not uses a real queue but only a marker (in STILLHERE)
- ;; and at each step must browse all map to find the current nearest point to the end.
+ ;; and at each step must scan all map to find the current nearest point to the end.
+
+ ;; - CAVEMAP is the problem description, we never change it
+ ;; - DISTANCES is the result we are building with distances to END
+ ;; - ENDLOC is the position of END
+ ;; - COUNT and STILLHERECOUNT are just debugging counters to display
+ ;;   some progression info while running
+ ;; - STILLHERE tracks which node were visited and which node were not
+ ;; - STILLHERELASTCOLS is an optimisation table to avoid scanning all
+ ;;   cells in STILLHERE
  (let* ((cur (minimum-in-array distances stillhere stillherelastcols))
         (stillherelastcols (car cur))
         (cur (cdr cur)))
