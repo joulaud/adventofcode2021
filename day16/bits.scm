@@ -91,11 +91,11 @@
              (let nextsubpackets ((numtoparse subpacketsnum) (strm strm) (sumversion sumversion) (current-length (+ 1 11)) (current-subvalues '()))
                    (cond
                      ((<= numtoparse 0) (make-result strm current-length sumversion (operation-apply type current-subvalues)))
-                     (else (let* ((numtoparse (1- numtoparse))
-                                  (subresult (parse-packet strm sumversion))
-                                  (strm (result-strm subresult))
+                     (else (let* ((numtoparse     (1- numtoparse))
+                                  (subresult      (parse-packet strm sumversion))
+                                  (strm           (result-strm subresult))
                                   (current-length (+ current-length (result-packet-length subresult)))
-                                  (sumversion (result-sumversion subresult))
+                                  (sumversion     (result-sumversion subresult))
                                   (current-subvalues (cons (result-other subresult) current-subvalues)))
                               (nextsubpackets numtoparse strm sumversion current-length current-subvalues)))))))
           (else ; length-type == 0, 15 next bits are the length of subpackets
@@ -107,19 +107,29 @@
                      ((<= lengthtoparse 0)
                       (if (not (= current-length subpacketslength))
                           (format (current-error-port) "ERROR: length do not match ~a vs. ~a" current-length subpacketslength))
-                      (make-result strm (+ 1 15 current-length) sumversion current-subvalues))
+                      (make-result strm (+ 1 15 current-length) sumversion (operation-apply type current-subvalues)))
                      (else (let* (
-                                  (subresult (parse-packet strm sumversion))
-                                  (strm (result-strm subresult))
-                                  (current-length (+ current-length (result-packet-length subresult)))
-                                  (lengthtoparse (- lengthtoparse (result-packet-length subresult)))
-                                  (sumversion (result-sumversion subresult))
+                                  (subresult         (parse-packet strm sumversion))
+                                  (strm              (result-strm subresult))
+                                  (current-length    (+ current-length (result-packet-length subresult)))
+                                  (lengthtoparse     (- lengthtoparse (result-packet-length subresult)))
+                                  (sumversion        (result-sumversion subresult))
                                   (current-subvalues (cons (result-other subresult) current-subvalues)))
                               (nextsubpackets lengthtoparse strm sumversion current-length current-subvalues))))))))))
    (parse-packet strm 0))
 
-(define (operation-apply . args)
-   #f)
+(define (operation-apply type subvalues)
+ (cond
+    ((= 0 type) (apply + subvalues))
+    ((= 1 type) (apply * subvalues))
+    ((= 2 type) (apply min subvalues))
+    ((= 3 type) (apply max subvalues))
+    ((= 5 type) (cond ((> (cadr subvalues) (car subvalues)) 1) ; TODO: explain this
+                      (else 0)))
+    ((= 6 type) (cond ((< (cadr subvalues) (car subvalues)) 1) ; TODO: explain this
+                      (else 0)))
+    ((= 7 type) (cond ((= (cadr subvalues) (car subvalues)) 1) ; TODO: explain this
+                      (else 0)))))
 
 (define-public (main args)
    (let* ((strm-char (stream-of-chars (current-input-port)))
