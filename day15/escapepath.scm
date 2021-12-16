@@ -140,7 +140,8 @@
      ((eqv? b 'inf) #t)
      (else (<= a b))))
 
-(define (minimum-in-array a stillhere)
+
+(define (minimum-in-array a stillhere stillherelastcols)
   (let* ((dims (array-dimensions a))
          (maxl (car dims))
          (maxc (cadr dims))
@@ -149,24 +150,32 @@
          (valmin 'inf))
     (do ((i 0 (1+ i)))
         ((>= i maxl))
+     (let* ((lastcol (array-ref stillherelastcols i))
+            (futurelastcol lastcol))
       (do ((j 0 (1+ j)))
-          ((>= j maxc))
-        (if (array-ref stillhere i j)
-          (let* ((val (array-ref a i j))
-                 (ismin? (inf<=? val valmin)))
-              (if ismin?
-                (begin
-                  (set! lres i)
-                  (set! cres j)
-                  (set! valmin val)))))))
-    (if lres (make-coord lres cres) #f)))
+          ((or (>= j maxc) (> j lastcol)))
+         (cond ((array-ref stillhere i j)
+                (set! futurelastcol j)
+                (let* ((val (array-ref a i j))
+                       (ismin? (inf<=? val valmin)))
+                    (cond (ismin?
+                           (set! lres i)
+                           (set! cres j)
+                           (set! valmin val)))))))
+      (array-set! stillherelastcols futurelastcol i)))
+    (cond
+      (lres (cons stillherelastcols (make-coord lres cres)))
+      (else (cons #f #f)))))
 
 (define (compute-distances cavemap)
    (let* ((endloc (array->maxcoord cavemap))
           (dist (make-array 'inf (1+ (coord-line endloc)) (1+ (coord-col endloc))))
           (_ (array-set! dist 0 (coord-line endloc) (coord-col endloc)))
-          (stillhere (make-array #t (1+ (coord-line endloc)) (1+ (coord-col endloc)))))
-     (compute-distances-internal cavemap dist stillhere endloc 0 (* (1+ (coord-line endloc)) (1+ (coord-col endloc))))))
+          (stillhere (make-array #t (1+ (coord-line endloc)) (1+ (coord-col endloc))))
+          (stillherelastcols (make-array (1+ (coord-col endloc)) (1+ (coord-line endloc)))))
+     (compute-distances-internal cavemap dist stillhere endloc
+                                 0 (* (1+ (coord-line endloc)) (1+ (coord-col endloc)))
+                                 stillherelastcols)))
 
 (define (howmany stillhere)
    (let ((count 0))
@@ -176,15 +185,18 @@
        stillhere)
      count))
 
-(define (compute-distances-internal cavemap distances stillhere endloc count stillherecount)
+(define (compute-distances-internal cavemap distances stillhere endloc count stillherecount stillherelastcols)
  ;; Here we use Dijkstra's algorithm as I understood it by a cursory glance at
  ;; http://algowiki-project.org/en/Dijkstra's_algorithm#Computational_kernel_of_the_algorithm
  ;; https://www.boost.org/doc/libs/1_78_0/libs/graph/doc/dijkstra_shortest_paths.html
  ;; It does not uses a real queue but only a marker (in STILLHERE)
  ;; and at each step must browse all map to find the current nearest point to the end.
- (let ((cur (minimum-in-array distances stillhere)))
+ (let* ((cur (minimum-in-array distances stillhere stillherelastcols))
+        (stillherelastcols (car cur))
+        (cur (cdr cur)))
    (cond
     ((not cur) distances) ;; we did not find any minimum stillhere, end of algorithm
+    ((equal? cur (make-coord 0 0)) distances) ;; early exit, we found the minimum from start point
     (else
       ;(display count)
       (if (= 0 (remainder count 500))
@@ -196,7 +208,7 @@
         (let loop ((neighbours neighbours)
                    (distances distances))
              (if (null? neighbours)
-                 (compute-distances-internal cavemap distances stillhere endloc (1+ count) stillherecount)
+                 (compute-distances-internal cavemap distances stillhere endloc (1+ count) stillherecount stillherelastcols)
                  (let* ((curneighbour (car neighbours))
                         (rest (cdr neighbours))
                         (proposed-distance (+ (cavemap-refloc distances cur) (cavemap-refloc cavemap cur)))

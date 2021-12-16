@@ -371,3 +371,77 @@ en ce moment. Sauf bogue je devrais avoir un résultat dans deux heures
 et demi si mon PC continue à tourner comme ça.
 
 C'est très clairement sous-optimal mais bon on s'en contentera.
+
+Après presque un peu plus d'une heure d'exécution mon résultat était
+faux, ce qui m'a fortement déçu. Je ne comprenais car tout fonctionnait
+sur les exemples. Et puis en relisant mon code je me suis rendu compte que
+la génération de la carte five-time-as-large était boguée. J'avais mis
+en dur dans le code la taille "10x10" de la carte exemple initiale. J'ai
+corrigé et relancé. Reparti pour un peu plus d'une heure.
+
+Et cette fois-ci j'ai le bon résultat.
+
+En parallèle de l'exécution du code je me suis demandé comment je
+pouvais optimiser. Alors j'ai fait quelques stats (avec `statprof`)
+et comme attendu c'est la recherche de la case minimale à traiter qui
+pose problème et même le nombre d'accès aux tableaux qui contiennent
+les valeurs de "visited" et "current value".
+
+### quelques amélioration de perfs
+
+À prendre avec des pincettes, il peut y avoir des variations qui ne
+sont pas dûes à l'algorithme mais simplement au fait que d'autres
+trucs tournaient sur la machine.
+
+Mon algo initial "Dijkstra sans PriorityQueue" où on parcours
+l'intégralité de la liste des cases pour savoir laquelle est la case
+minimale.
+```
+guile -e '(adventofcode2021 day15 escapepath)' -s ./escapepath.scm <   3734,70s user 0,18s system 99% cpu 1:02:16,43 total | Mem: 26 kb max
+```
+
+Le même algo mais avec une optimisation pour limiter l'impact des
+vérifications des noeuds déjà visités. On gratte 30% de conso CPU.
+Le principe est de garder la trace sur chaque colonne du dernier noeud
+non-visité. Ça permet de limiter le nombre de comparaisons à faire.
+```
+guile -e '(adventofcode2021 day15 escapepath)' -s ./escapepath.scm <   2639,97s user 0,14s system 99% cpu 44:04,63 total | Mem: 24 kb max
+```
+
+La deuxième optimisation consiste à faire un "early-exit" quand on
+trouve la case `(0,0)` qui contient la valeur recherchée. Ça évite
+de chercher les paths minimaux pour rien. Mais dans les faits ça ne me
+fait rien gagner car on doit quasiment tout calculer quand même.
+
+```
+guile -e '(adventofcode2021 day15 escapepath)' -s ./escapepath.scm <   2770,94s user 0,17s system 99% cpu 46:15,23 total | Mem: 52 kb max
+```
+
+### Pour aller plus loin
+
+Les collègues ont galéré eux-aussi. Et le vrai gain en perf est
+clairement lié à l'utilisation d'une PriorityQueue pour avoir accès
+rapidement à la case minimale suivante sans avoir à la chercher partout
+dans la liste des cases (ou dans le tableau de cases dans mon cas).
+
+Quand elle est déjà implémentée nativement comme en
+[Kotlin][Kotlin-PriorityQueue] ou dans un exemple de la doc comme en
+[Go][Go-PriorityQueue] c'est déjà un peu plus facile, mais il faut
+quand même comprendre l'[algorithmique][redblob-astar] en jeu.
+
+[Kotlin-Implementation]: https://todd.ginsberg.com/post/advent-of-code/2021/day15/#d15p1
+[Go-Implementation]: https://skarlso.github.io/2021/12/15/aoc-day15/
+[redblob-astar]: https://www.redblobgames.com/pathfinding/a-star/introduction.html
+
+Pour ma part j'ai souhaité me montrer prétentieux en n'utilisant pas
+les implémentations [existant][jaymccarty-dijkstra] en Scheme.
+
+[jaymccarty-dijkstra]: https://planet.racket-lang.org/package-source/jaymccarthy/dijkstra.plt/1/2/planet-docs/dijkstra/index.html
+
+Le plus sympa dans tout ça c'est d'échanger avec les collègues et de
+se rendre compte des différences d'approche entre les personnes et selon
+les technos utilisées. Et puis de refaire un peu d'algorithmique une
+fois de temps en temps ça fait du bien, car en vrai on empile souvent
+des couches sans plus rien comprendre. Ce type d'exercice nous remet face
+à des concepts de base qu'on a trop souvent laissés dans un tiroir en
+sortant de l'école.
