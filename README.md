@@ -390,12 +390,13 @@ les valeurs de "visited" et "current value".
 ### quelques amélioration de perfs
 
 À prendre avec des pincettes, il peut y avoir des variations qui ne
-sont pas dûes à l'algorithme mais simplement au fait que d'autres
-trucs tournaient sur la machine.
+sont pas dûes à l'algorithme mais simplement au fait que d'autres trucs
+tournaient sur la machine. Pour voir les différentes versions de l'algo
+il faut regarder l'historique git de ce repo.
 
 Mon algo initial "Dijkstra sans PriorityQueue" où on parcours
 l'intégralité de la liste des cases pour savoir laquelle est la case
-minimale.
+minimale. (`commit b6a77f3870347c8fdd8bfde53a9518a41ea2a79a`)
 ```
 guile -e '(adventofcode2021 day15 escapepath)' -s ./escapepath.scm <   3734,70s user 0,18s system 99% cpu 1:02:16,43 total | Mem: 26 kb max
 ```
@@ -417,12 +418,34 @@ fait rien gagner car on doit quasiment tout calculer quand même.
 guile -e '(adventofcode2021 day15 escapepath)' -s ./escapepath.scm <   2770,94s user 0,17s system 99% cpu 46:15,23 total | Mem: 52 kb max
 ```
 
+Quelques heures après je me suis décidé à remplacer le parcours de
+mon tableau de distances par une liste dans laquelle j'ai uniquement les
+cases pour lesquelles j'ai déjà calculé une distance. Cette liste de
+priorité, bien que complètement sous-optimale est déjà tellement plus
+efficace que le parcours intégral de toutes les cases possibles. On a
+un rapport entre 200 et 300 par rapport au code précédant.
+
+```
+guile -e '(adventofcode2021 day15 escapepath)' -s ./escapepath.scm <   9,04s user 0,06s system 126% cpu 7,214 total | Mem: 52 kb max
+```
+
+À ce stade j'ai bien envie de virer complètement la table des
+distances calculées qui ne me sert à rien puisque à la fin une seule
+valeur m'intéresse. Par contre en termes de perfs c'est un peu moins
+bien. L'accès aléatoire à la distance d'un voisin que permettait
+cette table était bien pratique.
+
+```
+guile -e '(adventofcode2021 day15 escapepath)' -s ./escapepath.scm <   14,91s user 0,05s system 111% cpu 13,468 total | Mem: 54 kb max
+```
+
+
 ### Pour aller plus loin
 
 Les collègues ont galéré eux-aussi. Et le vrai gain en perf est
 clairement lié à l'utilisation d'une PriorityQueue pour avoir accès
 rapidement à la case minimale suivante sans avoir à la chercher partout
-dans la liste des cases (ou dans le tableau de cases dans mon cas).
+dans la liste des cases (ou pire dans le tableau de cases dans mon cas).
 
 Quand elle est déjà implémentée nativement comme en
 [Kotlin][Kotlin-PriorityQueue] ou dans un exemple de la doc comme en
