@@ -398,7 +398,7 @@ Mon algo initial "Dijkstra sans PriorityQueue" où on parcours
 l'intégralité de la liste des cases pour savoir laquelle est la case
 minimale. (`commit b6a77f3870347c8fdd8bfde53a9518a41ea2a79a`)
 ```
-guile -e '(adventofcode2021 day15 escapepath)' -s ./escapepath.scm <   3734,70s user 0,18s system 99% cpu 1:02:16,43 total | Mem: 26 kb max
+3734,70s user 0,18s system 99% cpu 1:02:16,43 total | Mem: 26 kb max
 ```
 
 Le même algo mais avec une optimisation pour limiter l'impact des
@@ -406,7 +406,7 @@ vérifications des noeuds déjà visités. On gratte 30% de conso CPU.
 Le principe est de garder la trace sur chaque colonne du dernier noeud
 non-visité. Ça permet de limiter le nombre de comparaisons à faire.
 ```
-guile -e '(adventofcode2021 day15 escapepath)' -s ./escapepath.scm <   2639,97s user 0,14s system 99% cpu 44:04,63 total | Mem: 24 kb max
+2639,97s user 0,14s system 99% cpu 44:04,63 total | Mem: 24 kb max
 ```
 
 La deuxième optimisation consiste à faire un "early-exit" quand on
@@ -415,7 +415,7 @@ de chercher les paths minimaux pour rien. Mais dans les faits ça ne me
 fait rien gagner car on doit quasiment tout calculer quand même.
 
 ```
-guile -e '(adventofcode2021 day15 escapepath)' -s ./escapepath.scm <   2770,94s user 0,17s system 99% cpu 46:15,23 total | Mem: 52 kb max
+2770,94s user 0,17s system 99% cpu 46:15,23 total | Mem: 52 kb max
 ```
 
 Quelques heures après je me suis décidé à remplacer le parcours de
@@ -423,22 +423,24 @@ mon tableau de distances par une liste dans laquelle j'ai uniquement les
 cases pour lesquelles j'ai déjà calculé une distance. Cette liste de
 priorité, bien que complètement sous-optimale est déjà tellement plus
 efficace que le parcours intégral de toutes les cases possibles. On a
-un rapport entre 200 et 300 par rapport au code précédant.
+un rapport entre 200 et 300 par rapport au code précédant.  (`commit
+6c8f62a6ba564e9b60e208eca475a96dabb9a740 day15: a lot more speed`)
 
 ```
-guile -e '(adventofcode2021 day15 escapepath)' -s ./escapepath.scm <   9,04s user 0,06s system 126% cpu 7,214 total | Mem: 52 kb max
+9,04s user 0,06s system 126% cpu 7,214 total | Mem: 52 kb max
 ```
 
 À ce stade j'ai bien envie de virer complètement la table des
-distances calculées qui ne me sert à rien puisque à la fin une seule
-valeur m'intéresse. Par contre en termes de perfs c'est un peu moins
-bien. L'accès aléatoire à la distance d'un voisin que permettait
-cette table était bien pratique.
+distances calculées qui ne me sert à rien puisque à la fin
+une seule valeur m'intéresse. Par contre en termes de perfs
+c'est un peu moins bien. L'accès aléatoire à la distance d'un
+voisin que permettait cette table était bien pratique.  (`commit
+69055b836694d9c3541b594750e8b7138b057d98 day15: get rid of redundant
+DISTANCES table`)
 
 ```
-guile -e '(adventofcode2021 day15 escapepath)' -s ./escapepath.scm <   14,91s user 0,05s system 111% cpu 13,468 total | Mem: 54 kb max
+14,91s user 0,05s system 111% cpu 13,468 total | Mem: 54 kb max
 ```
-
 
 ### Pour aller plus loin
 
