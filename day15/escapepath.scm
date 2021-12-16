@@ -167,15 +167,31 @@
       (lres (cons stillherelastcols (make-coord lres cres)))
       (else (cons #f #f)))))
 
+(define (minimum-in-alist to-be-evaluated)
+  (let loop ((to-be-evaluated to-be-evaluated) (elem-min #f) (still-to-evaluate '()))
+      (cond
+       ((null? to-be-evaluated) (cons elem-min still-to-evaluate))
+       (else (let* ((elem-cur (car to-be-evaluated))
+                    (rest (cdr to-be-evaluated)))
+                 (cond
+                   (elem-min
+                    (let* ((min-cur? (< (cdr elem-cur) (cdr elem-min)))
+                           (still-to-evaluate (cons (if min-cur? elem-min elem-cur) still-to-evaluate))
+                           (elem-min (if min-cur? elem-cur elem-min)))
+                     (loop rest elem-min still-to-evaluate)))
+                   (else (loop rest elem-cur still-to-evaluate))))))))
+
 (define (compute-distances cavemap)
    (let* ((endloc (array->maxcoord cavemap))
           (dist (make-array 'inf (1+ (coord-line endloc)) (1+ (coord-col endloc))))
           (_ (array-set! dist 0 (coord-line endloc) (coord-col endloc)))
           (stillhere (make-array #t (1+ (coord-line endloc)) (1+ (coord-col endloc))))
-          (stillherelastcols (make-array (1+ (coord-col endloc)) (1+ (coord-line endloc)))))
+          (stillherelastcols (make-array (1+ (coord-col endloc)) (1+ (coord-line endloc))))
+          (to-be-evaluated (acons endloc 0 '())))
      (compute-distances-internal cavemap dist stillhere endloc
                                  0 (* (1+ (coord-line endloc)) (1+ (coord-col endloc)))
-                                 stillherelastcols)))
+                                 stillherelastcols
+                                 to-be-evaluated)))
 
 (define (howmany stillhere)
    (let ((count 0))
@@ -185,7 +201,7 @@
        stillhere)
      count))
 
-(define (compute-distances-internal cavemap distances stillhere endloc count stillherecount stillherelastcols)
+(define (compute-distances-internal cavemap distances stillhere endloc count stillherecount stillherelastcols to-be-evaluated)
  ;; Here we use Dijkstra's algorithm as I understood it by a cursory glance at
  ;; http://algowiki-project.org/en/Dijkstra's_algorithm#Computational_kernel_of_the_algorithm
  ;; https://www.boost.org/doc/libs/1_78_0/libs/graph/doc/dijkstra_shortest_paths.html
@@ -200,24 +216,27 @@
  ;; - STILLHERE tracks which node were visited and which node were not
  ;; - STILLHERELASTCOLS is an optimisation table to avoid scanning all
  ;;   cells in STILLHERE
- (let* ((cur (minimum-in-array distances stillhere stillherelastcols))
-        (stillherelastcols (car cur))
-        (cur (cdr cur)))
+ ;; - TO-BE-EVALUATED, is the queue to track cells we want to visit
+ (let* ((x               (minimum-in-alist to-be-evaluated))
+        (cur-elem        (car x))
+        (to-be-evaluated (cdr x))
+        (cur-distance    (cdr cur-elem))
+        (cur             (car cur-elem)))
    (cond
-    ((not cur) distances) ;; we did not find any minimum stillhere, end of algorithm
     ((equal? cur (make-coord 0 0)) distances) ;; early exit, we found the minimum from start point
     (else
       ;(display count)
-      (if (= 0 (remainder count 500))
+      (if (= 0 (remainder count 100))
           (begin
            (dbg "stillherecount=" stillherecount)))
       (let ((_ (array-set! stillhere #f (coord-line cur) (coord-col cur)))
             (stillherecount (1- stillherecount))
-            (neighbours (neighbours cur endloc)))
+            (neighbours (filter (lambda (x) (cavemap-refloc stillhere x)) (neighbours cur endloc))))
         (let loop ((neighbours neighbours)
-                   (distances distances))
+                   (distances distances)
+                   (to-be-evaluated to-be-evaluated))
              (if (null? neighbours)
-                 (compute-distances-internal cavemap distances stillhere endloc (1+ count) stillherecount stillherelastcols)
+                 (compute-distances-internal cavemap distances stillhere endloc (1+ count) stillherecount stillherelastcols to-be-evaluated)
                  (let* ((curneighbour (car neighbours))
                         (rest (cdr neighbours))
                         (proposed-distance (+ (cavemap-refloc distances cur) (cavemap-refloc cavemap cur)))
@@ -225,9 +244,12 @@
                         (better? (inf<=? proposed-distance previous-distance))
                         (distances (if better?
                                        (cavemap-setloc! distances proposed-distance curneighbour)
-                                       distances)))
-                    (loop rest distances)))))))))
-
+                                       distances))
+                        (to-be-evaluated (cond
+                                          ((and better? (cavemap-refloc stillhere curneighbour))
+                                           (assoc-set! to-be-evaluated curneighbour proposed-distance))
+                                          (else to-be-evaluated))))
+                    (loop rest distances to-be-evaluated)))))))))
 
 (define (lowest-risk cavemap)
   (let* ((distances (compute-distances cavemap))
