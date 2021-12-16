@@ -136,6 +136,6 @@
           (stream-bits (stream-of-bits strm-char))
           (packet-result (stream->packet-result stream-bits))
           (result1 (result-sumversion packet-result))
-          (result2 "UNIMP"))
+          (result2 (result-other packet-result)))
      (format #t "result1: ~a\n" result1)
      (format #t "result2: ~a\n" result2)))

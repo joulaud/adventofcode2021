@@ -470,3 +470,19 @@ fois de temps en temps ça fait du bien, car en vrai on empile souvent
 des couches sans plus rien comprendre. Ce type d'exercice nous remet face
 à des concepts de base qu'on a trop souvent laissés dans un tiroir en
 sortant de l'école.
+
+## Day 16
+
+Après le retour à la science informatique hier on a aujourd'hui un
+simple exercice de parsing.
+
+Scheme est vraiment pratique pour ce genre d'exercice avec des fonctions
+comme `apply` pour appliquer une opération à une liste d'éléments.
+
+Bon côté perfs mon implémentation c'est complètement zéro. J'utilise
+des listes d'entiers pour représenter des listes bits donc en termes
+mémoire c'est cata et en terme CPU je fais des multiplications là où
+je pourrais avoir des simples décalages et autres joyeusetés.
+
+Mais c'était une journée pour se reposer je crois donc on verra un autre
+jour pour réellement apprendre à gérer des données binaires en scheme.
