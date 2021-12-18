@@ -32,6 +32,17 @@
     (c state-c)
     (v state-v))
 
+(define-record-type <velocities>
+   (make-velocities vx vy)
+   velocities?
+   (vx velocities-vx)
+   (vy velocities-vy))
+(define (velocities<? a b)
+  (or (< (velocities-vx a) (velocities-vx b))
+      (and
+        (= (velocities-vx a) (velocities-vx b))
+        (< (velocities-vy a) (velocities-vy b)))))
+
 (define-record-type <target>
     (make-target x-min x-max y-low y-high)
     target?
@@ -96,9 +107,9 @@
 (define (x-at vx-init t)
    (cond
     ((>= t vx-init) (sum-of-first-ns vx-init))
-    (else (/ (* t
-                (- (* 2 vx-init) t 1))
-             2))))
+    (else (-
+           (* t vx-init)
+           (sum-of-first-ns (1- t))))))
 
 (define (vx-in-target? vx-init t target)
    (let ((x-min (target-x-min target))
@@ -116,6 +127,17 @@
          ((<= x x-max) #t) ; we are in the target
          (else (loop (1- vx-init)))))))) ; after the target, try lower vx
 
+(define (all-vx-in-target-for-step t target)
+   (let ((x-min (target-x-min target))
+         (x-max (target-x-max target)))
+     (let loop ((vx-init (vx-init-allmax target))
+                (results '()))
+      (let ((x (x-at vx-init t)))
+        (cond
+         ((< x x-min) results) ; we cannot reach target for this vx-init, will not be able for lower vx-init
+         ((<= x x-max) (loop (1- vx-init) (cons vx-init results))) ; we are in the target
+         (else (loop (1- vx-init) results))))))) ; after the target, try lower vx
+
 (define (search-vy-init-max target)
    ;; y-max est atteint pour vy-max.
    ;; on parcours tous les vy-init posssibles en partant de vy-init-allmax
@@ -128,6 +150,23 @@
        (cond (xreach? vy-init) ; we found it
              ((< vy-init 0) #f) ; we will never find it
              (else (loop (1- vy-init))))))) ; we try again with a lower vy-init
+
+(define (search-all-v-inits target)
+   ;; on parcours tous les vy-init posssibles en partant de vy-init-allmax
+   ;; et à chaque on teste si on touche la cible.
+   (let loop ((vy-init (vy-init-allmax target))
+              (results '()))
+     (cond
+        ((< vy-init (target-y-low target)) results) ; already under area, we will never find more
+        (else
+             (let* ((steps-reaching-target (vy-reach-target-at vy-init target))
+                    (vx-inits (append-map
+                                 (lambda (t) (all-vx-in-target-for-step t target))
+                                 steps-reaching-target))
+                    (vx-inits (delete-duplicates vx-inits))
+                    (velocities (map (lambda (vx) (make-velocities vx vy-init)) vx-inits))
+                    (results (append velocities results)))
+                 (loop (1- vy-init) results)))))) ; we search more with a lower vy-init
 
 (define (sum-of-first-ns n)
     (/ (* n (1+ n)) 2))
