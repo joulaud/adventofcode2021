@@ -486,3 +486,53 @@ je pourrais avoir des simples décalages et autres joyeusetés.
 
 Mais c'était une journée pour se reposer je crois donc on verra un autre
 jour pour réellement apprendre à gérer des données binaires en scheme.
+
+## Day 17
+
+J'ai tout d'abord abandonné en pensant au vu de la présentation de
+la première partie que c'était un problème d'optimisation que je
+n'arriverai pas à gérer.
+
+En fait c'est un simple problème d'énumération. D'où la sensation de
+"brute force", c'est parce-que dans ce cas je ne vois pas bien ce qu'on
+peut faire d'autre que de la force brute. On peut réduire l'espace
+à explorer mais pas complètement éliminer le besoin de simuler le
+parcours du sous-marin pour plusieurs vitesses initiales.
+
+Pour réduire l'espace à explorer j'ai pris en compte les éléments
+suivant.
+
+D'abord, les coordonnées en x et y sont complètement indépendantes
+donc on peut calculer d'abord les vitesses initiales verticales (vy)
+qui fonctionnent puis vérifier pour les vitesses initiales de vx.
+
+L'aire ciblée est toujours devant nous (xmin et xmax positifs) et
+en-dessous de nous (ymin et ymax négatifs).
+
+Si vy est positif (vers le haut) la sonde finit toujours par retomber,
+et quand elle repasse au point y=0 sa vitesse est l'opposé de sa
+vitesse initiale.
+
+Au-delà d'une certaine vitesse initiale, on "saute" systématiquement
+par-dessus l'aire ciblée.
+
+La sonde continue de tomber indéfiniment donc elle ne reste qu'un
+certain temps dans la zone ciblée.
+
+Du coup la stratégie est de trouver parmi les vy-init qui ne font
+pas directement sauter par-dessus la zone cible ceux qui permettent
+d'atteindre la cible et de noter à quelles étapes pour ces vy on est
+dans la cible.
+
+Une fois qu'on a les vy initiales possibles avec les étapes t
+correspondant, on peut chercher parmi les vitesses horizontales initiales
+vx celles-qui permettent d'être dans la zone cible aux étapes t ci-dessus.
+
+Du coup ce n'est pas si compliqué mais j'ai fait beaucoup de maths pour
+pas grand chose.
+
+Nota: si pour y je simule chaque étape, pour x je me contente de
+vérifier les coordonnées aux temps t déjà trouvé. La position x en
+fonction du temps pour une vitesse initiale donnée est mathématiquement
+facile à définir. Pour y aussi d'ailleurs mais à un moment j'ai besoin
+d'énumérer toutes les étapes donc de toute façon je fais le calcul.
