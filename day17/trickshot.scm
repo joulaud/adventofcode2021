@@ -137,8 +137,9 @@
       (else #f))))
 
 (define-public (main args)
-   (let* (
-          (result1 "UNIMP")
+   (let* ((line (read-line))
+          (target (string->target line))
+          (result1 (search-y-max target))
           (result2 "UNIMP"))
      (format #t "result1: ~a\n" result1)
      (format #t "result2: ~a\n" result2)))
