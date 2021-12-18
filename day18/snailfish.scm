@@ -26,8 +26,56 @@
 (define (snailfish-add a b)
   (cons a b))
 
+(define-record-type <exploded>
+  (make-exploded left right rest)
+  exploded?
+  (left exploded-left)
+  (right exploded-right)
+  (rest exploded-rest))
+
+(define (snailfish-explode-internal l n)
+    (let* ((left (car l))
+           (right (cdr l)))
+      (cond
+       ((and (>= n 4)
+             (number? left)
+             (number? right))
+        (make-exploded left right 0))
+       ((and (number? left)
+             (number? right))
+        (make-exploded #f #f (cons left right)))
+       ((number? left)
+        (let* ((exploded (snailfish-explode-internal right (1+ n)))
+               (explodedleft (exploded-left exploded))
+               (explodedright (exploded-right exploded))
+               (explodedrest (exploded-rest exploded)))
+            (cond
+             (explodedleft ;; on a un numéro à intégrer
+              (let* ((newleft (+ left explodedleft))
+                     (newrest (cons newleft explodedrest)))
+                (make-exploded #f explodedright newrest)))
+             (else
+                (make-exploded #f explodedright (cons left explodedrest))))))
+       ((number? right)
+        (let* ((exploded (snailfish-explode-internal left (1+ n)))
+               (explodedright (exploded-right exploded))
+               (explodedleft (exploded-left exploded))
+               (explodedrest (exploded-rest exploded)))
+            (cond
+             (explodedright ;; on a un numéro à intégrer
+              (let* ((newright (+ right explodedright))
+                     (newrest (cons explodedrest newright)))
+                (make-exploded explodedleft #f newrest)))
+             (else
+                (make-exploded explodedleft #f (cons explodedrest right))))))
+       (else
+        (error "This is not a snailnumber: ~A" l)))))
+
 (define (snailfish-explode l)
-   l)
+   (exploded-rest (snailfish-explode-internal l 0)))
+
+
+
 
 (define (snailfish-split l)
    l)
