@@ -82,11 +82,13 @@
 (define (vy-reach-target-at vy-init target)
  (let ((y-low (target-y-low target))
        (y-high (target-y-high target)))
-   (let loop ((y 0) (vy vy-init) (t 0))
+   (let loop ((y 0) (vy vy-init) (t 0) (results '()))
       (cond
-        ((< y y-low) #f) ; we passed the target
-        ((<= y y-high) t) ; between y-high and y-low, we are "in the target"
-        (else (loop (+ y vy) (1- vy) (1+ t))))))) ; still above target, try next step
+        ((< y y-low) results) ; we passed the target, we will not find more
+        ((<= y y-high) ; between y-high and y-low, we are "in the target"
+         (loop (+ y vy) (1- vy) (1+ t) (cons t results)))
+        (else ; still above target, try next step
+         (loop (+ y vy) (1- vy) (1+ t) results))))))
 
 (define (vx-init-allmax target)
    (1+ (target-x-max target)))
@@ -121,8 +123,8 @@
    (let loop ((vy-init (vy-init-allmax target)))
      (let* ((yreach (vy-reach-target-at vy-init target))
             (xreach? (cond
-                      (yreach (any-vx-in-target? yreach target))
-                      (else #f))))
+                      ((null? yreach) #f)
+                      (else (any-vx-in-target? (car yreach) target)))))
        (cond (xreach? vy-init) ; we found it
              ((< vy-init 0) #f) ; we will never find it
              (else (loop (1- vy-init))))))) ; we try again with a lower vy-init
