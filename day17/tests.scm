@@ -34,3 +34,10 @@
 (test-equal (make-target 20 30 -10 -5)
    (string->target example-string))
 (test-end "parsing")
+
+;; import internal functions of module to test
+(import-private search-y-max)
+
+(test-begin "find-vy-init-max")
+(test-equal 45 (search-y-max (make-target 20 30 -10 -5)))
+(test-end "find-vy-init-max")

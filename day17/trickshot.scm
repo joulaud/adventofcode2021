@@ -33,12 +33,12 @@
     (v state-v))
 
 (define-record-type <target>
-    (make-target x-min x-max y-high y-low)
+    (make-target x-min x-max y-low y-high)
     target?
     (x-min target-x-min)
     (x-max target-x-max)
-    (y-high target-y-high)
-    (y-low target-y-low))
+    (y-low target-y-low)
+    (y-high target-y-high))
 ;; On suppose que l'aire cible est toujours en dessous du sous-marin
 ;; et donc y-low < y-high < 0
 
@@ -93,7 +93,7 @@
 
 (define (x-at vx-init t)
    (cond
-    ((>= t vx-init) (/ (* vx-init (1+ vx-init)) 2))
+    ((>= t vx-init) (sum-of-first-ns vx-init))
     (else (/ (* t
                 (- (* 2 vx-init) t 1))
              2))))
@@ -121,11 +121,20 @@
    (let loop ((vy-init (vy-init-allmax target)))
      (let* ((yreach (vy-reach-target-at vy-init target))
             (xreach? (cond
-                      (yreach ((any-vx-in-target? yreach target)))
+                      (yreach (any-vx-in-target? yreach target))
                       (else #f))))
        (cond (xreach? vy-init) ; we found it
              ((< vy-init 0) #f) ; we will never find it
              (else (loop (1- vy-init))))))) ; we try again with a lower vy-init
+
+(define (sum-of-first-ns n)
+    (/ (* n (1+ n)) 2))
+
+(define (search-y-max target)
+  (let ((vy-init-max (search-vy-init-max target)))
+    (cond
+      (vy-init-max (sum-of-first-ns vy-init-max))
+      (else #f))))
 
 (define-public (main args)
    (let* (
