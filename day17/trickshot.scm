@@ -181,6 +181,6 @@
    (let* ((line (read-line))
           (target (string->target line))
           (result1 (search-y-max target))
-          (result2 "UNIMP"))
+          (result2 (length (search-all-v-inits target))))
      (format #t "result1: ~a\n" result1)
      (format #t "result2: ~a\n" result2)))
