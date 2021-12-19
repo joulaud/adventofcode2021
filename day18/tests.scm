@@ -39,22 +39,22 @@
 
 (test-begin "explode")
 (test-equal
-          (list->snailfish '((((0 . 9) . 2) . 3) . 4))
-          (cdr (snailfish-explode (list->snailfish '(((((9 . 8) . 1) . 2) . 3) . 4)))))
+          (cons #t (list->snailfish '((((0 . 9) . 2) . 3) . 4)))
+          (snailfish-explode (list->snailfish '(((((9 . 8) . 1) . 2) . 3) . 4))))
 (test-equal
-          (list->snailfish '(7 . (6 . (5 . (7 . 0)))))
-          (cdr (snailfish-explode (list->snailfish '(7 . (6 . (5 . (4 . (3 . 2)))))))))
+          (cons #t (list->snailfish '(7 . (6 . (5 . (7 . 0))))))
+          (snailfish-explode (list->snailfish '(7 . (6 . (5 . (4 . (3 . 2))))))))
 (test-equal
-          (list->snailfish '((6 . (5 . (7 . 0))) . 3))
-          (cdr (snailfish-explode (list->snailfish '((6 . (5 . (4 . (3 . 2)))) . 1)))))
+          (cons #t (list->snailfish '((6 . (5 . (7 . 0))) . 3)))
+          (snailfish-explode (list->snailfish '((6 . (5 . (4 . (3 . 2)))) . 1))))
 (test-equal
-          (list->snailfish '((3 . (2 . (8 . 0))) . (9 . (5 . (4 . (3 . 2))))))
-          (cdr (snailfish-explode (list->snailfish '((3 . (2 . (1 . (7 . 3)))) . (6 . (5 . (4 . (3 . 2)))))))))
+          (cons #t (list->snailfish '((3 . (2 . (8 . 0))) . (9 . (5 . (4 . (3 . 2)))))))
+          (snailfish-explode (list->snailfish '((3 . (2 . (1 . (7 . 3)))) . (6 . (5 . (4 . (3 . 2))))))))
 (test-equal
-          (list->snailfish '((3 . (2 . (8 . 0))) . (9 . (5 . (7 . 0)))))
-          (cdr (snailfish-explode (list->snailfish '((3 . (2 . (8 . 0))) . (9 . (5 . (4 . (3 . 2)))))))))
+          (cons #t (list->snailfish '((3 . (2 . (8 . 0))) . (9 . (5 . (7 . 0))))))
+          (snailfish-explode (list->snailfish '((3 . (2 . (8 . 0))) . (9 . (5 . (4 . (3 . 2))))))))
 ;; no explosion when no more than 3 level of nesting
 (test-equal
-          (list->snailfish '(1 . (2 . (3 . 4))))
-          (cdr (snailfish-explode (list->snailfish '(1 . (2 . (3 . 4)))))))
+          (cons #f (list->snailfish '(1 . (2 . (3 . 4)))))
+          (snailfish-explode (list->snailfish '(1 . (2 . (3 . 4))))))
 (test-end "explode")
