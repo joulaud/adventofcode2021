@@ -48,6 +48,7 @@
       ((char=? c #\newline) (reverse cur))
       ((char=? c #\[) (read-snailfish-rec (cons 'OPEN cur)))
       ((char=? c #\]) (read-snailfish-rec (cons 'CLOSE cur)))
+      ((char=? c #\,) (read-snailfish-rec cur))
       (else (read-rawnumber cur (char->decimal c))))))
   (define (read-rawnumber l num)
     (let ((c (read-char port)))
@@ -60,8 +61,21 @@
       (else (read-rawnumber l (+ (* 10 num) (char->decimal c)))))))
   (read-snailfish-rec '()))
 
+(define (read-snailfishes port)
+  (let read-snailfishes-rec ((lst '()))
+    (let ((new (read-snailfish port)))
+      (cond
+       ((null? new) (reverse lst))
+       (else (read-snailfishes-rec (cons new lst)))))))
+
 (define (snailfish-add a b)
-  (append '(OPEN) a b '(CLOSE)))
+ ;; Warning: this addition is not commutative at all
+ (cond
+  ((and a b)
+   (append '(OPEN) a b '(CLOSE)))
+  (a a)
+  (b b)
+  (else #f)))
 
 (define (begins-with-pair? l)
   (and
@@ -145,9 +159,22 @@
          (splitted? (snailfish-reduce-rec result))
          (else result)))))
 
+(define (snailfish-full-add a b)
+  (let* ((sum (snailfish-add a b))
+         (reduced-sum (snailfish-reduce sum)))
+    reduced-sum))
+
+(define (snailfish-full-add-lst lst)
+  (fold
+   (lambda (num prev)
+       (snailfish-full-add prev num))
+   #f
+   lst))
+
 (define-public (main args)
    (let* (
-          (result1 "UNIMP")
+          (snailfishes (read-snailfishes (current-input-port)))
+          (result1 snailfishes)
           (result2 "UNIMP"))
      (format #t "result1: ~a\n" result1)
      (format #t "result2: ~a\n" result2)))

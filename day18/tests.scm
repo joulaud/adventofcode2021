@@ -29,7 +29,6 @@
 (import-private snailfish-explode)
 (import-private snailfish-split)
 (import-private snailfish-reduce)
-(import-private read-snailfish)
 
 (test-begin "add")
 (test-equal
@@ -73,9 +72,55 @@
   (snailfish-reduce (list->snailfish '(((((4 . 3) . 4) . 4) . (7 . ((8 . 4) . 9))) . (1 . 1)))))
 (test-end "reduce")
 
+
+(import-private read-snailfish)
+(import-private read-snailfishes)
+(import-private snailfish-full-add-lst)
+
 (test-begin "parsing")
 (test-equal (list->snailfish '(1 . 2))
             (read-snailfish (open-input-string "[1,2]")))
 (test-equal (list->snailfish '(1 . (2 . 3)))
             (read-snailfish (open-input-string "[1,[2,3]]")))
 (test-end "parsing")
+
+(test-begin "complete")
+(define (string->snailfish str)
+   (read-snailfish (open-input-string str)))
+(define (string->snailfishes str)
+   (read-snailfishes (open-input-string str)))
+
+(test-equal (string->snailfish "[[[[1,1],[2,2]],[3,3]],[4,4]]")
+            (snailfish-full-add-lst (string->snailfishes "[1,1]
+[2,2]
+[3,3]
+[4,4]")))
+
+(test-equal (string->snailfish "[[[[3,0],[5,3]],[4,4]],[5,5]]")
+            (snailfish-full-add-lst (string->snailfishes "[1,1]
+[2,2]
+[3,3]
+[4,4]
+[5,5]")))
+
+(test-equal (string->snailfish "[[[[5,0],[7,4]],[5,5]],[6,6]]")
+            (snailfish-full-add-lst (string->snailfishes "[1,1]
+[2,2]
+[3,3]
+[4,4]
+[5,5]
+[6,6]")))
+
+;;(test-equal (string->snailfish "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]")
+;;            (snailfish-full-add (string->snailfishes "[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]
+;;[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]
+;;[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]
+;;[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]
+;;[7,[5,[[3,8],[1,4]]]]
+;;[[2,[2,2]],[8,[8,1]]]
+;;[2,9]
+;;[1,[[[9,3],9],[[9,0],[0,7]]]]
+;;[[[5,[7,4]],7],1]
+;;[[[[4,2],2],6],[8,7]]")))
+(test-end "complete")
+
