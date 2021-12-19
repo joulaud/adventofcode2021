@@ -50,7 +50,7 @@
                (explodedright (exploded-right exploded))
                (explodedrest (exploded-rest exploded)))
             (cond
-             (explodedleft ;; on a un numéro à intégrer
+             (explodedleft ; on a un numéro à intégrer
               (let* ((newleft (+ left explodedleft))
                      (newrest (cons newleft explodedrest)))
                 (make-exploded #f explodedright newrest)))
@@ -62,14 +62,19 @@
                (explodedleft (exploded-left exploded))
                (explodedrest (exploded-rest exploded)))
             (cond
-             (explodedright ;; on a un numéro à intégrer
+             (explodedright ; on a un numéro à intégrer
               (let* ((newright (+ right explodedright))
                      (newrest (cons explodedrest newright)))
                 (make-exploded explodedleft #f newrest)))
              (else
                 (make-exploded explodedleft #f (cons explodedrest right))))))
-       (else
-        (error "This is not a snailnumber: ~A" l)))))
+       (else ; list on both sides
+        (let* ((explodedleft (snailfish-explode-internal left (1+ n)))
+               (expl-LL (exploded-left explodedleft))
+               (expl-LR (exploded-right explodedleft))
+               (isexploded? (or expl-LL expl-LR)))
+          (cond
+           (isexploded?)))))))
 
 (define (snailfish-explode l)
    (exploded-rest (snailfish-explode-internal l 0)))
