@@ -39,18 +39,18 @@
 
 (test-begin "explode")
 (test-equal
-          '((((0 . 9) . 2) . 3) . 4)
-          (snailfish-explode '(((((9 . 8) . 1) . 2) . 3) . 4)))
+          (list->snailfish '((((0 . 9) . 2) . 3) . 4))
+          (snailfish-explode (list->snailfish '(((((9 . 8) . 1) . 2) . 3) . 4))))
 (test-equal
-          '(7 . (6 . (5 . (7 . 0))))
-          (snailfish-explode '(7 . (6 . (5 . (4 . (3 . 2)))))))
+          (list->snailfish '(7 . (6 . (5 . (7 . 0)))))
+          (snailfish-explode (list->snailfish '(7 . (6 . (5 . (4 . (3 . 2))))))))
 (test-equal
-          '((6 . (5 . (7 . 0))) . 3)
-          (snailfish-explode '((6 . (5 . (4 . (3 . 2)))) . 1)))
+          (list->snailfish '((6 . (5 . (7 . 0))) . 3))
+          (snailfish-explode (list->snailfish '((6 . (5 . (4 . (3 . 2)))) . 1))))
 (test-equal
-          '((3 . (2 . (8 . 0))) . (9 . (5 . (4 . (3 . 2)))))
-          (snailfish-explode '((3 . (2 . (1 . (7 . 3)))) . '(6 . (5 . (4 . (3 . 2)))))))
+          (list->snailfish '((3 . (2 . (8 . 0))) . (9 . (5 . (4 . (3 . 2))))))
+          (snailfish-explode (list->snailfish '((3 . (2 . (1 . (7 . 3)))) . (6 . (5 . (4 . (3 . 2))))))))
 (test-equal
-          '((3 . (2 . (8 . 0))) . (9 . (5 . (7 . 0))))
-          (snailfish-explode '((3 . (2 . (8 . 0))) . '(9 . (5 . (4 . (3 . 2)))))))
+          (list->snailfish '((3 . (2 . (8 . 0))) . (9 . (5 . (7 . 0)))))
+          (snailfish-explode (list->snailfish '((3 . (2 . (8 . 0))) . (9 . (5 . (4 . (3 . 2))))))))
 (test-end "explode")
