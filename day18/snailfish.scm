@@ -86,7 +86,19 @@
             (else depth)))))))
 
 (define (snailfish-split l)
-   l)
+    (let snailfish-split-rec ((head '()) (tail l) (splitted? #f))
+      (cond
+       ((null? tail) (cons splitted? (reverse head)))
+       (else
+        (let* ((cur (car tail)))
+          (cond
+           ((and (number? cur) (>= cur 10))
+            (let* ((n-left (quotient cur 2))
+                   (n-right (+ n-left (remainder cur 2)))
+                   (new-head (cons* 'CLOSE n-right n-left 'OPEN head)))
+              (snailfish-split-rec new-head (cdr tail) #t)))
+           (else
+            (snailfish-split-rec (cons cur head) (cdr tail) splitted?))))))))
 
 (define (snailfish-reduce l)
    l)

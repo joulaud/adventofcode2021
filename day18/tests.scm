@@ -58,3 +58,10 @@
           (cons #f (list->snailfish '(1 . (2 . (3 . 4)))))
           (snailfish-explode (list->snailfish '(1 . (2 . (3 . 4))))))
 (test-end "explode")
+
+(test-begin "split")
+(snailfish-split (list->snailfish '((((0 . 7) . 4) . (15 . (0 . 13))) . (1 . 1))))
+(test-equal
+  (cons #t (list->snailfish '((((0 . 7) . 4) . ((7 . 8) . (0 . (6 . 7)))) . (1 . 1))))
+  (snailfish-split (list->snailfish '((((0 . 7) . 4) . (15 . (0 . 13))) . (1 . 1)))))
+(test-end "split")
