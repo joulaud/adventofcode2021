@@ -100,8 +100,24 @@
            (else
             (snailfish-split-rec (cons cur head) (cdr tail) splitted?))))))))
 
+(define (snailfish-explode-all l)
+   (let snailfish-explode-all-rec ((l l))
+     (let* ((x (snailfish-explode l))
+            (exploded? (car x))
+            (result (cdr x)))
+      (cond
+       (exploded? (snailfish-explode-all-rec result))
+       (else result)))))
+
 (define (snailfish-reduce l)
-   l)
+   (let snailfish-reduce-rec ((l l))
+      (let* ((exploded (snailfish-explode-all l))
+             (splitted-res (snailfish-split exploded))
+             (splitted? (car splitted-res))
+             (result (cdr splitted-res)))
+        (cond
+         (splitted? (snailfish-reduce-rec result))
+         (else result)))))
 
 (define-public (main args)
    (let* (

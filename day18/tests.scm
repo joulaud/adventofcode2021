@@ -60,8 +60,14 @@
 (test-end "explode")
 
 (test-begin "split")
-(snailfish-split (list->snailfish '((((0 . 7) . 4) . (15 . (0 . 13))) . (1 . 1))))
 (test-equal
-  (cons #t (list->snailfish '((((0 . 7) . 4) . ((7 . 8) . (0 . (6 . 7)))) . (1 . 1))))
-  (snailfish-split (list->snailfish '((((0 . 7) . 4) . (15 . (0 . 13))) . (1 . 1)))))
+  (cons #t (list->snailfish '(((((4 . 3) . 4) . 4) . (7 . ((8 . 4) . 9))) . (1 . 1))))
+  (snailfish-split (list->snailfish '((((0 . 7) . 4) . ((7 . 8) . (0 . (6 . 7)))) . (1 . 1)))))
 (test-end "split")
+
+
+(test-begin "reduce")
+(test-equal
+  (list->snailfish '((((0 . 7) . 4) . ((7 . 8) . (6 . 0))) . (8 . 1)))
+  (snailfish-reduce (list->snailfish '(((((4 . 3) . 4) . 4) . (7 . ((8 . 4) . 9))) . (1 . 1)))))
+(test-end "reduce")
