@@ -71,10 +71,11 @@
                                 (tail l)
                                 (depth 0))
         (cond
-         ((null? tail) (reverse head))
+         ((null? tail) (cons #f (reverse head)))
          ((and (>= depth 4)
                (begins-with-pair? tail))
-          (snailfish-explode-next-pair head tail))
+          (cons #t
+                (snailfish-explode-next-pair head tail)))
          (else
           (snailfish-explode-rec
            (cons (car tail) head)
