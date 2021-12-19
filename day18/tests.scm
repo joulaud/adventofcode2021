@@ -53,4 +53,8 @@
 (test-equal
           (list->snailfish '((3 . (2 . (8 . 0))) . (9 . (5 . (7 . 0)))))
           (snailfish-explode (list->snailfish '((3 . (2 . (8 . 0))) . (9 . (5 . (4 . (3 . 2))))))))
+;; no explosion when no more than 3 level of nesting
+(test-equal
+          (list->snailfish '(1 . (2 . (3 . 4))))
+          (snailfish-explode (list->snailfish '(1 . (2 . (3 . 4))))))
 (test-end "explode")
