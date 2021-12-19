@@ -24,6 +24,7 @@
 (define testdir (or (guess-current-dirname) (getcwd)))
 
 ;; import internal functions of module to test
+(import-private list->snailfish)
 (import-private snailfish-add)
 (import-private snailfish-explode)
 (import-private snailfish-split)
@@ -31,9 +32,9 @@
 
 (test-begin "add")
 (test-equal
-  '((1 . 2) . ((3 . 4) . 5))
-  (snailfish-add '(1 . 2)
-                 '((3 . 4) . 5)))
+  (list->snailfish '((1 . 2) . ((3 . 4) . 5)))
+  (snailfish-add (list->snailfish '(1 . 2))
+                 (list->snailfish '((3 . 4) . 5))))
 (test-end "add")
 
 (test-begin "explode")

@@ -23,8 +23,20 @@
 
 (define (dbg t v) (format #t "~a~a\n" t v) (force-output))
 
+(define (list->snailfish l)
+  (let list->snailfish-rec ((l l))
+     (cond
+      ((null? l) (list 'close))
+      ((number? l) (list l))
+      (else
+       (append
+        (list 'open)
+        (list->snailfish-rec (car l))
+        (list->snailfish-rec (cdr l))
+        (list 'close))))))
+
 (define (snailfish-add a b)
-  (cons a b))
+  (append '(open) a b '(close)))
 
 (define-record-type <exploded>
   (make-exploded left right rest)
