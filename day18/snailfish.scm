@@ -35,6 +35,31 @@
         (list->snailfish-rec (cdr l))
         (list 'CLOSE))))))
 
+
+(define (char->decimal c)
+  (- (char->integer c) (char->integer #\0)))
+
+
+(define (read-snailfish port)
+  (define (read-snailfish-rec cur)
+    (let ((c (read-char port)))
+     (cond
+      ((eof-object? c) (reverse cur))
+      ((char=? c #\newline) (reverse cur))
+      ((char=? c #\[) (read-snailfish-rec (cons 'OPEN cur)))
+      ((char=? c #\]) (read-snailfish-rec (cons 'CLOSE cur)))
+      (else (read-rawnumber cur (char->decimal c))))))
+  (define (read-rawnumber l num)
+    (let ((c (read-char port)))
+     (cond
+      ((eof-object? c) (error "BAD INPUT"))
+      ((char=? c #\newline) (error "BAD INPUT"))
+      ((char=? c #\[) (error "BAD INPUT"))
+      ((char=? c #\]) (read-snailfish-rec (cons* 'CLOSE num l)))
+      ((char=? c #\,) (read-snailfish-rec (cons* num l)))
+      (else (read-rawnumber l (+ (* 10 num) (char->decimal c)))))))
+  (read-snailfish-rec '()))
+
 (define (snailfish-add a b)
   (append '(OPEN) a b '(CLOSE)))
 
@@ -88,7 +113,8 @@
 (define (snailfish-split l)
     (let snailfish-split-rec ((head '()) (tail l) (splitted? #f))
       (cond
-       ((null? tail) (cons splitted? (reverse head)))
+       ((null? tail)
+        (cons splitted? (reverse head)))
        (else
         (let* ((cur (car tail)))
           (cond

@@ -29,6 +29,7 @@
 (import-private snailfish-explode)
 (import-private snailfish-split)
 (import-private snailfish-reduce)
+(import-private read-snailfish)
 
 (test-begin "add")
 (test-equal
@@ -71,3 +72,10 @@
   (list->snailfish '((((0 . 7) . 4) . ((7 . 8) . (6 . 0))) . (8 . 1)))
   (snailfish-reduce (list->snailfish '(((((4 . 3) . 4) . 4) . (7 . ((8 . 4) . 9))) . (1 . 1)))))
 (test-end "reduce")
+
+(test-begin "parsing")
+(test-equal (list->snailfish '(1 . 2))
+            (read-snailfish (open-input-string "[1,2]")))
+(test-equal (list->snailfish '(1 . (2 . 3)))
+            (read-snailfish (open-input-string "[1,[2,3]]")))
+(test-end "parsing")
