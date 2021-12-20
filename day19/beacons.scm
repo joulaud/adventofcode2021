@@ -31,7 +31,9 @@
   (z coord-z))
 
 (define (string->coord str)
-  str)
+  (let* ((x (string-split str #\,))
+         (x (map string->number x)))
+    (make-coord (first x) (second x) (third x))))
 
 
 (define-public (main args)
