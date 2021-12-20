@@ -569,3 +569,22 @@ Beaucoup de fonctions. Beaucoup de bogues aussi, dont pas mal
 d'inattentions où j'utilise la mauvaise variable. Heureusement le jeu
 d'exemples fourni par Eric Wastl se traduit très bien en tests ce qui
 permet de détecter ces bogues assez vite.
+
+# Notes et liens
+## Des adventofcode2021 intéressant
+
+https://www.draketo.de/software/advent-of-wisp-code-2021.html
+
+https://todd.ginsberg.com/post/advent-of-code/2021/
+
+## Les collègues
+
+https://github.com/julienvey/adventofcode2021/
+
+https://github.com/NinoDLC/AdventOfCode/
+
+https://github.com/rajivjhoomuck/aoc-2021
+
+https://github.com/PierreFourreau/AdventOfCode2021
+
+https://github.com/lhoang/AdventOfCode2021
