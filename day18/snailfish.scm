@@ -198,7 +198,30 @@
              (result (cdr magnitude-res)))
         (cond
          (stillwork? (snailfish-magnitude-rec result))
-         (else result)))))
+         (else (car result))))))
+
+(define (max-addition snail l)
+  (let max-addition-rec ((rest l) (curmax #f))
+   (cond
+    ((null? rest) curmax)
+    (else
+     (let* ((cur (car rest))
+            (rest (cdr rest))
+            (add1 (snailfish-magnitude (snailfish-full-add snail cur)))
+            (add2 (snailfish-magnitude (snailfish-full-add cur snail)))
+            (curmax (if curmax (max add1 add2 curmax) (max add1 add2))))
+      (max-addition-rec rest curmax))))))
+
+(define (max-additions l)
+  (let max-additions-rec ((rest l) (curmax #f))
+   (let* ((cur (car rest))
+          (rest (cdr rest)))
+     (cond
+      ((null? rest) curmax)
+      (else
+       (let* ((x (max-addition cur rest))
+              (curmax (if curmax (max x curmax) x)))
+        (max-additions-rec rest curmax)))))))
 
 (define (snailfish-print l)
   (for-each
@@ -216,6 +239,6 @@
           (sum (snailfish-full-add-lst snailfishes))
           (_ (snailfish-print sum))
           (result1 (snailfish-magnitude sum))
-          (result2 "UNIMP"))
+          (result2 (max-additions snailfishes)))
      (format #t "result1: ~a\n" result1)
      (format #t "result2: ~a\n" result2)))
