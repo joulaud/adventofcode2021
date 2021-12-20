@@ -536,3 +536,36 @@ vérifier les coordonnées aux temps t déjà trouvé. La position x en
 fonction du temps pour une vitesse initiale donnée est mathématiquement
 facile à définir. Pour y aussi d'ailleurs mais à un moment j'ai besoin
 d'énumérer toutes les étapes donc de toute façon je fais le calcul.
+
+## Day 18
+
+Quand j'ai vu l'énoncé, je me suis dit « les doigts dans le nez ». La
+structure de données était idéalement représentée par des paires
+`cons` en Scheme. Donc j'ai écrit `(define snailfish-add cons)` et j'ai
+cru que ce serait bon.
+
+Mais il y a cette histoire d'explosion et de "first regular number to the
+left" et respectivement "to the right". Or ma structure à base de paire
+se parcourt comme un arbre et en utilisant la récursion je ne sais pas
+simplement ce qu'il y a sur les autres branches de l'arbre (à la limite
+je peux tracker les parents, mais pas traverser horizontalement).
+
+Je suis revenu plus tard en faisant une représentation linéaire
+correspondant exactement à la représentation écrite, i.e. une liste
+de marques d'ouverture (`[` que j'ai noté`'OPEN`) et de fermeture (`]`
+que j'ai noté`'CLOSE`) et de nombres. Je ne suis pas sûr du tout que
+ce soit le plus efficient mais ça a fonctionné.
+
+Le truc dans pas mal de fonctions est de parcourir la liste d'élément en
+étant capable de la modifier à droite et à gauche. Pour ça j'utilise
+une double pile. Dans la pile `head` j'empile les éléments déjà
+traités à gauche, si j'ai besoin de revenir en arrière je peux dépiler
+un peu. Dans la pile `tail` j'ai le reste des éléments à traiter que
+je dépile au fur et à mesure. Pour savoir si j'ai affaire à une paire
+simple je peux faire un peak sur les quatre éléments au dessus de la
+pile `tail` (en cas de paire j'ai `('OPEN NUM1 NUM2 'CLOSE ...)`).
+
+Beaucoup de fonctions. Beaucoup de bogues aussi, dont pas mal
+d'inattentions où j'utilise la mauvaise variable. Heureusement le jeu
+d'exemples fourni par Eric Wastl se traduit très bien en tests ce qui
+permet de détecter ces bogues assez vite.
