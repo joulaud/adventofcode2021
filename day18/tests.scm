@@ -160,4 +160,3 @@
 (test-equal 3488
             (car (snailfish-magnitude (string->snailfish "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]"))))
 (test-end "magnitudes")
-

@@ -167,8 +167,6 @@
 (define (snailfish-full-add-lst lst)
   (fold
    (lambda (num prev)
-       (if prev (begin (display "=") (snailfish-print prev)))
-       (display "+") (snailfish-print num)
        (snailfish-full-add prev num))
    #f
    lst))
@@ -216,7 +214,6 @@
    (let* (
           (snailfishes (read-snailfishes (current-input-port)))
           (sum (snailfish-full-add-lst snailfishes))
-          (_ (dbg "sum=" sum))
           (_ (snailfish-print sum))
           (result1 (snailfish-magnitude sum))
           (result2 "UNIMP"))
