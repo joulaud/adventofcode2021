@@ -35,6 +35,16 @@
          (x (map string->number x)))
     (make-coord (first x) (second x) (third x))))
 
+(define (read-scanner port)
+  (let read-scanner-rec ((beacons '()))
+    (let* ((line (read-line port)))
+      (cond
+       ((eof-object? line) (reverse beacons)) ; end-of-file
+       ((string-null? line) (reverse beacons)) ; end-of-paragraph
+       ((string-prefix? "--- scanner" line) (read-scanner-rec beacons)) ; begin of next paragraph
+       (else
+        (read-scanner-rec
+          (cons (string->coord line) beacons)))))))
 
 (define-public (main args)
    (let* (

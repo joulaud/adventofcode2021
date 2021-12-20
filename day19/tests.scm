@@ -26,7 +26,13 @@
 ;; import internal functions of module to test
 (import-private string->coord)
 (import-private make-coord)
+(import-private read-scanner)
 
 (test-begin "parsing")
 (test-equal (make-coord -1 -1 1) (string->coord "-1,-1,1"))
+(define simple-scanner "--- scanner 0 ---
+-1,-1,1
+-2,-2,2")
+(test-equal (list (make-coord -1 -1 1) (make-coord -2 -2 2))
+            (read-scanner (open-input-string simple-scanner)))
 (test-end "parsing")
