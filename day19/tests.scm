@@ -26,13 +26,29 @@
 ;; import internal functions of module to test
 (import-private string->coord)
 (import-private make-coord)
+(import-private make-scan)
 (import-private read-scanner)
+(import-private read-all-scanners)
+(import-private scan-beacons)
 
 (test-begin "parsing")
 (test-equal (make-coord -1 -1 1) (string->coord "-1,-1,1"))
 (define simple-scanner "--- scanner 0 ---
 -1,-1,1
 -2,-2,2")
-(test-equal (list (make-coord -1 -1 1) (make-coord -2 -2 2))
-            (read-scanner (open-input-string simple-scanner)))
+(test-equal (make-scan (list (make-coord -1 -1 1) (make-coord -2 -2 2)))
+            (car (read-scanner (open-input-string simple-scanner))))
+
+(define two-scans-str "--- scanner 0 ---
+404,-588,-901
+528,-643,409
+-838,591,734
+
+--- scanner 1 ---
+686,422,578
+605,423,415")
+(define two-scans (read-all-scanners (open-input-string two-scans-str)))
+(test-equal 2 (length two-scans))
+(test-equal 3 (length (scan-beacons (car two-scans))))
+(test-equal (make-coord 404 -588 -901) (car (scan-beacons (car two-scans))))
 (test-end "parsing")

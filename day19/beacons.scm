@@ -30,6 +30,11 @@
   (y coord-y)
   (z coord-z))
 
+(define-record-type <scan>
+  (make-scan beacons)
+  scan?
+  (beacons scan-beacons))
+
 (define (string->coord str)
   (let* ((x (string-split str #\,))
          (x (map string->number x)))
@@ -39,12 +44,19 @@
   (let read-scanner-rec ((beacons '()))
     (let* ((line (read-line port)))
       (cond
-       ((eof-object? line) (reverse beacons)) ; end-of-file
-       ((string-null? line) (reverse beacons)) ; end-of-paragraph
+       ((eof-object? line) (cons (make-scan (reverse beacons)) line)) ; end-of-file
+       ((string-null? line) (cons (make-scan (reverse beacons)) line)) ; end-of-paragraph
        ((string-prefix? "--- scanner" line) (read-scanner-rec beacons)) ; begin of next paragraph
        (else
         (read-scanner-rec
           (cons (string->coord line) beacons)))))))
+
+(define (read-all-scanners port)
+  (let read-all-scanners-rec ((scanners '()))
+    (let ((scan (read-scanner port)))
+      (cond
+        ((eof-object? (cdr scan)) (reverse (cons (car scan) scanners)))
+        (else (read-all-scanners-rec (cons (car scan) scanners)))))))
 
 (define-public (main args)
    (let* (
