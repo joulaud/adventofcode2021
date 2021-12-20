@@ -167,14 +167,58 @@
 (define (snailfish-full-add-lst lst)
   (fold
    (lambda (num prev)
+       (if prev (begin (display "=") (snailfish-print prev)))
+       (display "+") (snailfish-print num)
        (snailfish-full-add prev num))
    #f
    lst))
 
+(define (magnitude-of-pair tail)
+  (let* ((n-left (second tail))
+         (n-right (third tail))
+         (magnitude (+ (* 3 n-left) (* 2 n-right))))
+     magnitude))
+
+(define (resolve-magnitude-of-raw-pairs l)
+   (let resolve-magnitude-of-raw-pairs-rec
+        ((head '())
+         (tail l)
+         (resolved? #f))
+     (cond
+      ((null? tail) (cons resolved? (reverse head)))
+      ((begins-with-pair? tail)
+       (let ((mag (magnitude-of-pair tail)))
+         (resolve-magnitude-of-raw-pairs-rec (cons mag head) (list-tail tail 4) #t)))
+      (else
+       (resolve-magnitude-of-raw-pairs-rec (cons (car tail) head) (cdr tail) resolved?)))))
+
+(define (snailfish-magnitude l)
+    (let snailfish-magnitude-rec
+         ((cur l))
+      (let* ((magnitude-res (resolve-magnitude-of-raw-pairs cur))
+             (stillwork? (car magnitude-res))
+             (result (cdr magnitude-res)))
+        (cond
+         (stillwork? (snailfish-magnitude-rec result))
+         (else result)))))
+
+(define (snailfish-print l)
+  (for-each
+   (lambda (x)
+      (cond
+       ((eq? 'OPEN x) (display #\[))
+       ((eq? 'CLOSE x) (display #\]))
+       (else (display x) (display #\,))))
+   l)
+  (display "\n"))
+
 (define-public (main args)
    (let* (
           (snailfishes (read-snailfishes (current-input-port)))
-          (result1 snailfishes)
+          (sum (snailfish-full-add-lst snailfishes))
+          (_ (dbg "sum=" sum))
+          (_ (snailfish-print sum))
+          (result1 (snailfish-magnitude sum))
           (result2 "UNIMP"))
      (format #t "result1: ~a\n" result1)
      (format #t "result2: ~a\n" result2)))

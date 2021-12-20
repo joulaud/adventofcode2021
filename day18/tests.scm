@@ -76,6 +76,7 @@
 (import-private read-snailfish)
 (import-private read-snailfishes)
 (import-private snailfish-full-add-lst)
+(import-private snailfish-full-add)
 
 (test-begin "parsing")
 (test-equal (list->snailfish '(1 . 2))
@@ -84,12 +85,19 @@
             (read-snailfish (open-input-string "[1,[2,3]]")))
 (test-end "parsing")
 
-(test-begin "complete")
+
+(test-begin "complete-add")
 (define (string->snailfish str)
    (read-snailfish (open-input-string str)))
 (define (string->snailfishes str)
    (read-snailfishes (open-input-string str)))
+(test-equal  (string->snailfish "[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]")
+     (snailfish-full-add
+       (string->snailfish "[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]")
+       (string->snailfish "[[[[4,0],[5,4]],[[7,7],[6,0]]],[[8,[7,7]],[[7,9],[5,0]]]]")))
+(test-end "complete-add")
 
+(test-begin "complete-add-lst")
 (test-equal (string->snailfish "[[[[1,1],[2,2]],[3,3]],[4,4]]")
             (snailfish-full-add-lst (string->snailfishes "[1,1]
 [2,2]
@@ -111,16 +119,45 @@
 [5,5]
 [6,6]")))
 
-;;(test-equal (string->snailfish "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]")
-;;            (snailfish-full-add (string->snailfishes "[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]
-;;[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]
-;;[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]
-;;[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]
-;;[7,[5,[[3,8],[1,4]]]]
-;;[[2,[2,2]],[8,[8,1]]]
-;;[2,9]
-;;[1,[[[9,3],9],[[9,0],[0,7]]]]
-;;[[[5,[7,4]],7],1]
-;;[[[[4,2],2],6],[8,7]]")))
-(test-end "complete")
+(snailfish-full-add-lst (string->snailfishes "[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]
+[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]
+[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]
+[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]
+[7,[5,[[3,8],[1,4]]]]
+[[2,[2,2]],[8,[8,1]]]
+[2,9]
+[1,[[[9,3],9],[[9,0],[0,7]]]]
+[[[5,[7,4]],7],1]
+[[[[4,2],2],6],[8,7]]"))
+(test-equal (string->snailfish "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]")
+            (snailfish-full-add-lst (string->snailfishes "[[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]
+[7,[[[3,7],[4,3]],[[6,3],[8,8]]]]
+[[2,[[0,8],[3,4]]],[[[6,7],1],[7,[1,6]]]]
+[[[[2,4],7],[6,[0,5]]],[[[6,8],[2,8]],[[2,1],[4,5]]]]
+[7,[5,[[3,8],[1,4]]]]
+[[2,[2,2]],[8,[8,1]]]
+[2,9]
+[1,[[[9,3],9],[[9,0],[0,7]]]]
+[[[5,[7,4]],7],1]
+[[[[4,2],2],6],[8,7]]")))
+
+(test-end "complete-add-lst")
+
+(import-private snailfish-magnitude)
+
+(test-begin "magnitudes")
+(snailfish-magnitude (string->snailfish "[[1,2],[[3,4],5]]"))
+(test-equal 143
+            (car (snailfish-magnitude (string->snailfish "[[1,2],[[3,4],5]]"))))
+(test-equal 1384
+            (car (snailfish-magnitude (string->snailfish "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"))))
+(test-equal 445
+            (car (snailfish-magnitude (string->snailfish "[[[[1,1],[2,2]],[3,3]],[4,4]]"))))
+(test-equal 791
+            (car (snailfish-magnitude (string->snailfish "[[[[3,0],[5,3]],[4,4]],[5,5]]"))))
+(test-equal 1137
+            (car (snailfish-magnitude (string->snailfish "[[[[5,0],[7,4]],[5,5]],[6,6]]"))))
+(test-equal 3488
+            (car (snailfish-magnitude (string->snailfish "[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]"))))
+(test-end "magnitudes")
 
