@@ -136,7 +136,7 @@
             (let* ((n-left (quotient cur 2))
                    (n-right (+ n-left (remainder cur 2)))
                    (new-head (cons* 'CLOSE n-right n-left 'OPEN head)))
-              (snailfish-split-rec new-head (cdr tail) #t)))
+              (cons #t (append-reverse new-head (cdr tail)))))
            (else
             (snailfish-split-rec (cons cur head) (cdr tail) splitted?))))))))
 
