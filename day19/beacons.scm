@@ -116,7 +116,7 @@
    (scan-beacons scan)))
 
 (define (scan-length scan)
-  (length (scan-beacons scan)))
+  (length (delete-duplicates (scan-beacons scan))))
 
 (define (string->coord str)
   (let* ((x (string-split str #\,))
@@ -312,12 +312,63 @@
 (define rotation-xN180  (lambda (c) (make-coord (- (coord-x c))  (- (coord-y c)) (- (coord-z c)))))
 (define rotation-xN270  (lambda (c) (make-coord (- (coord-x c))  (+ (coord-z c)) (- (coord-y c)))))
 
-(define all-rotations-func (list rotation-xP0 rotation-zP90 rotation-zP180 rotation-zP270
-                                 rotation-yP0 rotation-yP90 rotation-yP180 rotation-yP270
-                                 rotation-xP0 rotation-xP90 rotation-xP180 rotation-xP270
-                                 rotation-zN0 rotation-zN90 rotation-zN180 rotation-zN270
-                                 rotation-yN0 rotation-yN90 rotation-yN180 rotation-yN270
-                                 rotation-xN0 rotation-xN90 rotation-xN180 rotation-xN270))
+;;(define all-rotations-func (list rotation-zP0 rotation-zP90 rotation-zP180 rotation-zP270
+;;                                 rotation-yP0 rotation-yP90 rotation-yP180 rotation-yP270
+;;                                 rotation-xP0 rotation-xP90 rotation-xP180 rotation-xP270
+;;                                 rotation-zN0 rotation-zN90 rotation-zN180 rotation-zN270
+;;                                 rotation-yN0 rotation-yN90 rotation-yN180 rotation-yN270
+;;                                 rotation-xN0 rotation-xN90 rotation-xN180 rotation-xN270))
+
+(define all-rotations-func (list
+                            ;;FIXME: supprimer les redondances
+                             (lambda (c) (make-coord (+ (coord-x c)) (+  (coord-y c))  (+ (coord-z c))))
+                             (lambda (c) (make-coord (+ (coord-x c))  (+ (coord-y c))  (- (coord-z c))))
+                             (lambda (c) (make-coord (+ (coord-x c))  (- (coord-y c))  (+ (coord-z c))))
+                             (lambda (c) (make-coord (+ (coord-x c))  (- (coord-y c))  (- (coord-z c))))
+                             (lambda (c) (make-coord (- (coord-x c))  (+ (coord-y c))  (+ (coord-z c))))
+                             (lambda (c) (make-coord (- (coord-x c))  (+ (coord-y c))  (- (coord-z c))))
+                             (lambda (c) (make-coord (- (coord-x c))  (- (coord-y c))  (+ (coord-z c))))
+                             (lambda (c) (make-coord (- (coord-x c))  (- (coord-y c))  (- (coord-z c))))
+                             (lambda (c) (make-coord (+ (coord-x c))  (+ (coord-z c))  (+ (coord-y c))))
+                             (lambda (c) (make-coord (+ (coord-x c))  (+ (coord-z c))  (- (coord-y c))))
+                             (lambda (c) (make-coord (+ (coord-x c))  (- (coord-z c))  (+ (coord-y c))))
+                             (lambda (c) (make-coord (+ (coord-x c))  (- (coord-z c))  (- (coord-y c))))
+                             (lambda (c) (make-coord (- (coord-x c))  (+ (coord-z c))  (+ (coord-y c))))
+                             (lambda (c) (make-coord (- (coord-x c))  (+ (coord-z c))  (- (coord-y c))))
+                             (lambda (c) (make-coord (- (coord-x c))  (- (coord-z c))  (+ (coord-y c))))
+                             (lambda (c) (make-coord (- (coord-x c))  (- (coord-z c))  (- (coord-y c))))
+                             (lambda (c) (make-coord (+ (coord-y c))  (+ (coord-x c))  (+ (coord-z c))))
+                             (lambda (c) (make-coord (+ (coord-y c))  (+ (coord-x c))  (- (coord-z c))))
+                             (lambda (c) (make-coord (+ (coord-y c))  (- (coord-x c))  (+ (coord-z c))))
+                             (lambda (c) (make-coord (+ (coord-y c))  (- (coord-x c))  (- (coord-z c))))
+                             (lambda (c) (make-coord (- (coord-y c))  (+ (coord-x c))  (+ (coord-z c))))
+                             (lambda (c) (make-coord (- (coord-y c))  (+ (coord-x c))  (- (coord-z c))))
+                             (lambda (c) (make-coord (- (coord-y c))  (- (coord-x c))  (+ (coord-z c))))
+                             (lambda (c) (make-coord (- (coord-y c))  (- (coord-x c))  (- (coord-z c))))
+                             (lambda (c) (make-coord (+ (coord-y c))  (+ (coord-z c))  (+ (coord-x c))))
+                             (lambda (c) (make-coord (+ (coord-y c))  (+ (coord-z c))  (- (coord-x c))))
+                             (lambda (c) (make-coord (+ (coord-y c))  (- (coord-z c))  (+ (coord-x c))))
+                             (lambda (c) (make-coord (+ (coord-y c))  (- (coord-z c))  (- (coord-x c))))
+                             (lambda (c) (make-coord (- (coord-y c))  (+ (coord-z c))  (+ (coord-x c))))
+                             (lambda (c) (make-coord (- (coord-y c))  (+ (coord-z c))  (- (coord-x c))))
+                             (lambda (c) (make-coord (- (coord-y c))  (- (coord-z c))  (+ (coord-x c))))
+                             (lambda (c) (make-coord (- (coord-y c))  (- (coord-z c))  (- (coord-x c))))
+                             (lambda (c) (make-coord (+ (coord-z c))  (+ (coord-x c))  (+ (coord-y c))))
+                             (lambda (c) (make-coord (+ (coord-z c))  (+ (coord-x c))  (- (coord-y c))))
+                             (lambda (c) (make-coord (+ (coord-z c))  (- (coord-x c))  (+ (coord-y c))))
+                             (lambda (c) (make-coord (+ (coord-z c))  (- (coord-x c))  (- (coord-y c))))
+                             (lambda (c) (make-coord (- (coord-z c))  (+ (coord-x c))  (+ (coord-y c))))
+                             (lambda (c) (make-coord (- (coord-z c))  (+ (coord-x c))  (- (coord-y c))))
+                             (lambda (c) (make-coord (- (coord-z c))  (- (coord-x c))  (+ (coord-y c))))
+                             (lambda (c) (make-coord (- (coord-z c))  (- (coord-x c))  (- (coord-y c))))
+                             (lambda (c) (make-coord (+ (coord-z c))  (+ (coord-y c))  (+ (coord-x c))))
+                             (lambda (c) (make-coord (+ (coord-z c))  (+ (coord-y c))  (- (coord-x c))))
+                             (lambda (c) (make-coord (+ (coord-z c))  (- (coord-y c))  (+ (coord-x c))))
+                             (lambda (c) (make-coord (+ (coord-z c))  (- (coord-y c))  (- (coord-x c))))
+                             (lambda (c) (make-coord (- (coord-z c))  (+ (coord-y c))  (+ (coord-x c))))
+                             (lambda (c) (make-coord (- (coord-z c))  (+ (coord-y c))  (- (coord-x c))))
+                             (lambda (c) (make-coord (- (coord-z c))  (- (coord-y c))  (+ (coord-x c))))
+                             (lambda (c) (make-coord (- (coord-z c))  (- (coord-y c))  (- (coord-x c))))))
 
 ;;(for-each
 ;; (cut format #t "~a\n" <>)
@@ -443,6 +494,7 @@
                    (rest (cdr keys))
                    (cur (map (cut assoc key <>) lst))
                    (all? (every identity cur))
+                   ;(_ (dbg "all?" all?))
                    (result (if all? (acons key (map cdr cur) result) result)))
               (zip-alists-rec rest result)))))))
 
@@ -461,35 +513,50 @@
   (let* ((pairs-from (scan-pairs scan-from))
          (pairs-to (scan-pairs scan-to))
          (zipped (zip-alists pairs-from pairs-to)))
-    (cond
-      ((< (length zipped) 12) '()) ; we need at least 12 common points to be able to find all coordinates
-      (else
-        (let ((result (let* ((first-distance-with-pairs (first zipped))
-                             (first-pairs (cdr first-distance-with-pairs))
-                             (first-pair-from (car first-pairs))
-                             (first-pair-to (cadr first-pairs)))
-                         (fold
-                           (lambda (cur-distance-with-pairs acc)
-                             (let* ((pairs (cdr cur-distance-with-pairs))
-                                    (pair-from (first pairs))
-                                    (pair-to (second pairs))
-                                    (acc (filter
-                                          (cute is-possible-transform? pair-to pair-from <>)
-                                          acc)))
-                                acc))
-                           (append (get-transforms-candidates (car first-pair-from) (car first-pair-to))
-                                   (get-transforms-candidates (car first-pair-from) (cdr first-pair-to)))
-                           zipped))))
-            (if (= 1 (length result)) result '()))))))
+      (let* ((first-distance-with-pairs (first zipped))
+             (first-pairs (cdr first-distance-with-pairs))
+             (first-pair-from (car first-pairs))
+             (first-pair-to (cadr first-pairs))
+             (result (fold
+                      (lambda (cur-distance-with-pairs acc)
+                        (let* ((pairs (cdr cur-distance-with-pairs))
+                               (pair-from (first pairs))
+                               (pair-to (second pairs))
+                               (newacc (map
+                                        (lambda (trwithcount)
+                                            (let* ((tr (cdr trwithcount))
+                                                   (validtr? (is-possible-transform? pair-to pair-from tr))
+                                                   (newcount
+                                                    (if validtr? (1+ (car trwithcount)) (car trwithcount)))
+                                                   ;(_ (dbg "validtr?,nwecount=" (list validtr? newcount)))
+                                                   ;(_ (usleep (quotient (expt 10 6) 3)))
+                                                   ;(_ (if validtr? (dbg "acc=" (map car acc))))
+                                                   (ret (cons newcount tr)))
+                                               ret))
+                                        acc)))
 
+                         newacc))
+                      (map
+                       (cut cons 1 <>)
+                       (append (get-transforms-candidates (car first-pair-from) (car first-pair-to))
+                              (get-transforms-candidates (car first-pair-from) (cdr first-pair-to))))
+                      zipped)))
+           (sort result (lambda (a b) (> (car a) (car b)))))))
+
+(map
+ (lambda (x)
+   (cons (1+ ( car x)) (cdr x)))
+ '((0 . a)(1 . b)(5 . c)))
 (define (scan-merge from to)
    (let* ((transform (scan-give-transform from to)))
+          ;(_ (dbgn "trs=" (map transform->string transform))))
      (cond
        ((null? transform) #f)
-       (transform (let* ((transform (car transform))
+       ((< (caar transform) 12) #f)
+       (transform (let* ((transform (cdar transform))
                          (from-transformed (map transform (scan-beacons from)))
                          (result (append-reverse from-transformed (scan-beacons to))))
-                    (make-scan result (string-append (scan-name from) (scan-name to)))))
+                    (make-scan (delete-duplicates result) (string-append (scan-name from) (scan-name to)))))
        (else #f))))
 
 (define (merge-all-scanners lst)
@@ -512,8 +579,8 @@
           (fullmap (merge-all-scanners scanners))
           (result1 (scan-length fullmap))
           (result2 "UNIMP"))
-      (format #t "result1: ~a\n" result1)
-      (format #t "result2: ~a\n" result2)))
+     (format #t "result1: ~a\n" result1)
+     (format #t "result2: ~a\n" result2)))
 
 
 ;; ;;;;;;;
@@ -530,3 +597,5 @@
 ;; (get-transforms-candidates $1 $1)
 ;; (map (cut apply <> (list $1)) $3)
 ;; (filter (cute is-possible-transform? (cons $1 $2) (cons $1 $2) <>) $3)
+
+
