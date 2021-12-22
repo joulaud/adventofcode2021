@@ -39,11 +39,12 @@
         (< (point-y a) (point-y b)))))
 
 (define-record-type <image>
-  (make-image point-min point-max points)
+  (make-image point-min point-max points default)
   image?
   (point-min image-point-min)
   (point-max image-point-max)
-  (points image-points))
+  (points image-points)
+  (default image-default))
 
 (define (parse-enhancement line)
    (map
@@ -54,7 +55,7 @@
   (let parse-image-rec ((line 0) (col 0) (points '()) (maxpoint #f))
      (let ((c (read-char port)))
        (cond
-         ((eof-object? c) (make-image (make-point 0 0) maxpoint (reverse points)))
+         ((eof-object? c) (make-image (make-point 0 0) maxpoint (reverse points) #f))
          ((char=? #\newline c) (parse-image-rec (1+ line) 0
                                                 points                                   maxpoint))
          ((char=? #\# c) (parse-image-rec line     (1+ col)
@@ -63,19 +64,33 @@
                                           points (make-point line col)))
          (else (error (string-append "parsing failed: " c)))))))
 
-(define (input-value point points)
+(define (on-image point image)
+  (and (>= (point-x point) (point-x (image-point-min image)))
+       (>= (point-y point) (point-y (image-point-min image)))
+       (<= (point-x point) (point-x (image-point-max image)))
+       (<= (point-y point) (point-y (image-point-max image)))))
+
+(define (image-actual-point-value point image)
+  (cond
+   ((on-image point image)
+    (let* ((val (assoc point (image-points image)))
+           (val (if val (cdr val) #f)))
+       val))
+   (else (image-default image))))
+
+(define (input-value point image)
  (let* ((x (point-x point))
         (y (point-y point))
         (n  (list
-             (assoc (make-point (1- x) (1- y)) points)
-             (assoc (make-point (1- x)     y ) points)
-             (assoc (make-point (1- x) (1+ y)) points)
-             (assoc (make-point     x  (1- y)) points)
-             (assoc (make-point     x      y ) points)
-             (assoc (make-point     x  (1+ y)) points)
-             (assoc (make-point (1+ x) (1- y)) points)
-             (assoc (make-point (1+ x)     y ) points)
-             (assoc (make-point (1+ x) (1+ y)) points)))
+             (image-actual-point-value (make-point (1- x) (1- y)) image)
+             (image-actual-point-value (make-point (1- x)     y)  image)
+             (image-actual-point-value (make-point (1- x) (1+ y)) image)
+             (image-actual-point-value (make-point     x  (1- y)) image)
+             (image-actual-point-value (make-point     x      y)  image)
+             (image-actual-point-value (make-point     x  (1+ y)) image)
+             (image-actual-point-value (make-point (1+ x) (1- y)) image)
+             (image-actual-point-value (make-point (1+ x)     y)  image)
+             (image-actual-point-value (make-point (1+ x) (1+ y)) image)))
         (n (fold (lambda (cur num)
                      (+ (* 2 num) (if cur 1 0)))
                  0
@@ -115,21 +130,24 @@
 (define (image-conversion-step image enhancement)
   (let* ((p-max (image-point-max image))
          (p-min (image-point-min image))
-         (x-min (- (point-x p-min) 2))
-         (x-max (+ (point-x p-max) 2))
-         (y-min (- (point-y p-min) 2))
-         (y-max (+ (point-y p-max) 2))
+         (x-min (- (point-x p-min) 3))
+         (x-max (+ (point-x p-max) 3))
+         (y-min (- (point-y p-min) 3))
+         (y-max (+ (point-y p-max) 3))
          (points (image-points image)))
     (let loop-line ((x x-min) (result-points '()))
       (cond
-       ((> x x-max) (make-image (make-point x-min y-min) (make-point x-max y-max) result-points))
+       ((> x x-max) (make-image (make-point x-min y-min) (make-point x-max y-max) result-points
+                                (cond
+                                 ((image-default image) (output-pixel 511 enhancement))
+                                 (else (output-pixel 0 enhancement)))))
        (else
         (let loop-col ((y y-min) (result-points result-points))
          (cond
           ((> y y-max) (loop-line (1+ x) result-points))
           (else
            (let* ((cur (make-point x y))
-                  (new-pixel (output-pixel (input-value cur points) enhancement))
+                  (new-pixel (output-pixel (input-value cur image) enhancement))
                   (result-points (if new-pixel (acons cur #t result-points) result-points)))
                (loop-col (1+ y) result-points))))))))))
 
@@ -139,6 +157,7 @@
           (enhancement (parse-enhancement enhancement))
           (_ (read-line))
           (image (parse-image (current-input-port)))
+          (_ (display (image->string image)))
           (image (image-conversion-step image enhancement))
           (image (image-conversion-step image enhancement))
           (result1 (length (image-points image)))
