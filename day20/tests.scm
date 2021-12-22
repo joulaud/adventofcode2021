@@ -24,7 +24,18 @@
 (define testdir (or (guess-current-dirname) (getcwd)))
 
 ;; import internal functions of module to test
-(import-private string->coord)
+(import-private parse-enhancement)
+(import-private parse-image)
+(import-private make-image)
+(import-private make-point)
+
+(test-begin "parsing")
+(test-equal '(#f #t #t) (parse-enhancement ".##"))
+(test-equal (make-image (make-point 0 0) (make-point 1 1)
+                        (list (cons (make-point 0 1) #t)
+                              (cons (make-point 1 0) #t)))
+            (parse-image (open-input-string ".#\n#.\n")))
+(test-end "parsing")
 
 (test-begin "XXX")
 (dbg "XXX" "X")
