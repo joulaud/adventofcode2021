@@ -78,8 +78,8 @@
              (assoc (make-point (1+ x) (1+ y)) points)))
         (n (fold (lambda (cur num)
                      (+ (* 2 num) (if cur 1 0)))
-                  0
-                  n)))
+                 0
+                 n)))
     n))
 
 (define (output-pixel value enhancement)
@@ -135,7 +135,13 @@
 
 (define-public (main args)
    (let* (
-          (result1 "UNIMP")
+          (enhancement (read-line))
+          (enhancement (parse-enhancement enhancement))
+          (_ (read-line))
+          (image (parse-image (current-input-port)))
+          (image (image-conversion-step image enhancement))
+          (image (image-conversion-step image enhancement))
+          (result1 (length (image-points image)))
           (result2 "UNIMP"))
      (format #t "result1: ~a\n" result1)
      (format #t "result2: ~a\n" result2)))
