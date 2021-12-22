@@ -513,40 +513,39 @@
   (let* ((pairs-from (scan-pairs scan-from))
          (pairs-to (scan-pairs scan-to))
          (zipped (zip-alists pairs-from pairs-to)))
-      (let* ((first-distance-with-pairs (first zipped))
-             (first-pairs (cdr first-distance-with-pairs))
-             (first-pair-from (car first-pairs))
-             (first-pair-to (cadr first-pairs))
-             (result (fold
-                      (lambda (cur-distance-with-pairs acc)
-                        (let* ((pairs (cdr cur-distance-with-pairs))
-                               (pair-from (first pairs))
-                               (pair-to (second pairs))
-                               (newacc (map
-                                        (lambda (trwithcount)
-                                            (let* ((tr (cdr trwithcount))
-                                                   (validtr? (is-possible-transform? pair-to pair-from tr))
-                                                   (newcount
-                                                    (if validtr? (1+ (car trwithcount)) (car trwithcount)))
-                                                   ;(_ (dbg "validtr?,nwecount=" (list validtr? newcount)))
-                                                   ;(_ (usleep (quotient (expt 10 6) 3)))
-                                                   ;(_ (if validtr? (dbg "acc=" (map car acc))))
-                                                   (ret (cons newcount tr)))
-                                               ret))
-                                        acc)))
+   (cond
+    ((null? zipped) '())
+    (else
+     (let* ((first-distance-with-pairs (first zipped))
+            (first-pairs (cdr first-distance-with-pairs))
+            (first-pair-from (car first-pairs))
+            (first-pair-to (cadr first-pairs))
+            (result (fold
+                     (lambda (cur-distance-with-pairs acc)
+                       (let* ((pairs (cdr cur-distance-with-pairs))
+                              (pair-from (first pairs))
+                              (pair-to (second pairs))
+                              (newacc (map
+                                       (lambda (trwithcount)
+                                           (let* ((tr (cdr trwithcount))
+                                                  (validtr? (is-possible-transform? pair-to pair-from tr))
+                                                  (newcount
+                                                   (if validtr? (1+ (car trwithcount)) (car trwithcount)))
+                                                  ;(_ (dbg "validtr?,nwecount=" (list validtr? newcount)))
+                                                  ;(_ (usleep (quotient (expt 10 6) 3)))
+                                                  ;(_ (if validtr? (dbg "acc=" (map car acc))))
+                                                  (ret (cons newcount tr)))
+                                              ret))
+                                       acc)))
 
-                         newacc))
-                      (map
-                       (cut cons 1 <>)
-                       (append (get-transforms-candidates (car first-pair-from) (car first-pair-to))
-                              (get-transforms-candidates (car first-pair-from) (cdr first-pair-to))))
-                      zipped)))
-           (sort result (lambda (a b) (> (car a) (car b)))))))
+                        newacc))
+                     (map
+                      (cut cons 1 <>)
+                      (append (get-transforms-candidates (car first-pair-from) (car first-pair-to))
+                             (get-transforms-candidates (car first-pair-from) (cdr first-pair-to))))
+                     zipped)))
+          (sort result (lambda (a b) (> (car a) (car b)))))))))
 
-(map
- (lambda (x)
-   (cons (1+ ( car x)) (cdr x)))
- '((0 . a)(1 . b)(5 . c)))
 (define (scan-merge from to)
    (let* ((transform (scan-give-transform from to)))
           ;(_ (dbgn "trs=" (map transform->string transform))))
@@ -555,8 +554,20 @@
        ((< (caar transform) 12) #f)
        (transform (let* ((transform (cdar transform))
                          (from-transformed (map transform (scan-beacons from)))
-                         (result (append-reverse from-transformed (scan-beacons to))))
-                    (make-scan (delete-duplicates result) (string-append (scan-name from) (scan-name to)))))
+                         (result (append-reverse from-transformed (scan-beacons to)))
+                         (from-pairs (scan-pairs from))
+                         (to-pairs (scan-pairs to))
+                         (result-pairs
+                          (fold
+                            (lambda (dpp acc)
+                               (acons (car dpp)
+                                      (cons (transform (cadr dpp)) (transform (cddr dpp)))
+                                      acc))
+                            to-pairs
+                            (scan-pairs from))))
+                    (make-scan-int result
+                                   result-pairs
+                                   (string-append (scan-name from) (scan-name to)))))
        (else #f))))
 
 (define (merge-all-scanners lst)
