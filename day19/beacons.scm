@@ -95,15 +95,16 @@
          ")"))))
 
 (define-record-type <scan>
-  (make-scan-int beacons pairs name)
+  (make-scan-int beacons pairs name centers)
   scan?
   (beacons scan-beacons)
   (pairs scan-pairs)
-  (name scan-name))
+  (name scan-name)
+  (centers scan-centers))
 
 (define (make-scan beacons name)
   (let ((pairs (scan-beacons->pairs-by-distances beacons)))
-    (make-scan-int beacons pairs name)))
+    (make-scan-int beacons pairs name (list (make-coord 0 0 0)))))
 
 (define (scan->string scan)
   (fold
@@ -147,6 +148,14 @@
          (dz (abs (- (coord-z a) (coord-z b))))
          (sorted (sort (list dx dy dz) <)))
      (apply make-coord sorted)))
+
+(define (manhatan-distance pair)
+  (let* ((a (car pair))
+         (b (cdr pair))
+         (dx (abs (- (coord-x a) (coord-x b))))
+         (dy (abs (- (coord-y a) (coord-y b))))
+         (dz (abs (- (coord-z a) (coord-z b)))))
+    (+ dx dy dz)))
 
 (define (pairs elem l)
   (let pairs-rec ((rest l) (result '()))
@@ -564,10 +573,12 @@
                                       (cons (transform (cadr dpp)) (transform (cddr dpp)))
                                       acc))
                             to-pairs
-                            (scan-pairs from))))
+                            (scan-pairs from)))
+                         (from-centers (map transform (scan-centers from))))
                     (make-scan-int result
                                    result-pairs
-                                   (string-append (scan-name from) (scan-name to)))))
+                                   (string-append (scan-name from) (scan-name to))
+                                   (append from-centers (scan-centers to)))))
        (else #f))))
 
 (define (merge-all-scanners lst)
@@ -589,7 +600,10 @@
    (let* ((scanners (read-all-scanners (current-input-port)))
           (fullmap (merge-all-scanners scanners))
           (result1 (scan-length fullmap))
-          (result2 "UNIMP"))
+          (result2 (allpairs (scan-centers fullmap)))
+          (_ (dbg "all=" result2))
+          (result2 (map manhatan-distance result2))
+          (result2 (apply max result2)))
      (format #t "result1: ~a\n" result1)
      (format #t "result2: ~a\n" result2)))
 
