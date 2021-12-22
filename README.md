@@ -570,6 +570,19 @@ d'inattentions où j'utilise la mauvaise variable. Heureusement le jeu
 d'exemples fourni par Eric Wastl se traduit très bien en tests ce qui
 permet de détecter ces bogues assez vite.
 
+## Day 19
+
+Je me suis vraiment vraiment perdu sur celui-là. J'ai fin par trouver
+la solution mais mon code est parti dans tous les sens et je ne suis pas
+sûr d'avoir bien compris ce que j'ai fait. Pour m'en sortir j'ai fini
+par poser comme postulat qu'il n'y avait jamais deux paires de beacons à
+la même position relative l'un par rapport à l'autre. Statistiquement
+ça doit être juste et dans mon cas en tout cas ça s'est avéré
+fonctionner.
+
+Je fais aussi deux fois chaque rotation car je n'ai pas réussi à
+déterminer lesquelles étaient redondantes.
+
 # Notes et liens
 ## Des adventofcode2021 intéressant
 
