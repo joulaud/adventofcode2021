@@ -15,6 +15,7 @@
 (use-modules (ice-9 rdelim))
 (use-modules (ice-9 match))
 (use-modules (ice-9 format))
+(use-modules (ice-9 vlist))
 (use-modules (srfi srfi-2)) ; and-let*
 (use-modules (srfi srfi-1)) ; lists library
 (use-modules (srfi srfi-11)) ; let*-values
@@ -52,14 +53,14 @@
     (string->list line)))
 
 (define (parse-image port)
-  (let parse-image-rec ((line 0) (col 0) (points '()) (maxpoint #f))
+  (let parse-image-rec ((line 0) (col 0) (points vlist-null) (maxpoint #f))
      (let ((c (read-char port)))
        (cond
-         ((eof-object? c) (make-image (make-point 0 0) maxpoint (reverse points) #f))
+         ((eof-object? c) (make-image (make-point 0 0) maxpoint points #f))
          ((char=? #\newline c) (parse-image-rec (1+ line) 0
                                                 points                                   maxpoint))
          ((char=? #\# c) (parse-image-rec line     (1+ col)
-                                          (acons (make-point line col) #t points) (make-point line col)))
+                                          (vhash-cons (make-point line col) #t points) (make-point line col)))
          ((char=? #\. c) (parse-image-rec line     (1+ col)
                                           points (make-point line col)))
          (else (error (string-append "parsing failed: " c)))))))
@@ -73,7 +74,7 @@
 (define (image-actual-point-value point image)
   (cond
    ((on-image point image)
-    (let* ((val (assoc point (image-points image)))
+    (let* ((val (vhash-assoc point (image-points image)))
            (val (if val (cdr val) #f)))
        val))
    (else (image-default image))))
@@ -110,7 +111,7 @@
        (cond
         ((> y y-max) (list->string (reverse (cons #\newline line))))
         (else
-         (let ((char (if (assoc (make-point x y) points)
+         (let ((char (if (vhash-assoc (make-point x y) points)
                       #\#
                       #\.)))
            (loop (1+ y) (cons char line))))))))
@@ -130,12 +131,12 @@
 (define (image-conversion-step image enhancement)
   (let* ((p-max (image-point-max image))
          (p-min (image-point-min image))
-         (x-min (- (point-x p-min) 3))
-         (x-max (+ (point-x p-max) 3))
-         (y-min (- (point-y p-min) 3))
-         (y-max (+ (point-y p-max) 3))
+         (x-min (- (point-x p-min) 2))
+         (x-max (+ (point-x p-max) 2))
+         (y-min (- (point-y p-min) 2))
+         (y-max (+ (point-y p-max) 2))
          (points (image-points image)))
-    (let loop-line ((x x-min) (result-points '()))
+    (let loop-line ((x x-min) (result-points vlist-null))
       (cond
        ((> x x-max) (make-image (make-point x-min y-min) (make-point x-max y-max) result-points
                                 (cond
@@ -148,9 +149,10 @@
           (else
            (let* ((cur (make-point x y))
                   (new-pixel (output-pixel (input-value cur image) enhancement))
-                  (result-points (if new-pixel (acons cur #t result-points) result-points)))
+                  (result-points (if new-pixel (vhash-cons cur #t result-points) result-points)))
                (loop-col (1+ y) result-points))))))))))
 
+(use-modules (statprof))
 (define-public (main args)
    (let* (
           (enhancement (read-line))
@@ -158,9 +160,13 @@
           (_ (read-line))
           (image (parse-image (current-input-port)))
           (_ (display (image->string image)))
-          (image (image-conversion-step image enhancement))
-          (image (image-conversion-step image enhancement))
-          (result1 (length (image-points image)))
-          (result2 "UNIMP"))
+          (image (fold (lambda (_ acc) (image-conversion-step acc enhancement))
+                       image
+                       (iota 2)))
+          (result1 (vlist-length (image-points image)))
+          (image (fold (lambda (_ acc) (image-conversion-step acc enhancement))
+                       image
+                       (iota 48)))
+          (result2 (vlist-length (image-points image))))
      (format #t "result1: ~a\n" result1)
      (format #t "result2: ~a\n" result2)))
