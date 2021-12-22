@@ -45,24 +45,6 @@
   (point-max image-point-max)
   (points image-points))
 
-(define (input-value point points)
- (let* ((x (point-x point))
-        (y (point-y point))
-        (n  (list
-             (assoc (make-point (1- x) (1- y)) points)
-             (assoc (make-point     x  (1- y)) points)
-             (assoc (make-point (1+ x) (1- y)) points)
-             (assoc (make-point (1- x)     y ) points)
-             (assoc (make-point     x      y ) points)
-             (assoc (make-point (1+ x)     y ) points)
-             (assoc (make-point (1- x) (1+ y)) points)
-             (assoc (make-point     x  (1+ y)) points)
-             (assoc (make-point (1+ x) (1+ y)) points)))
-        (n (fold (lambda (cur num) (+ (* 2 num) (if cur 1 0)))
-                 0
-                 n)))
-    n))
-
 (define (parse-enhancement line)
    (map
     (cut char=? #\# <>)
@@ -82,8 +64,52 @@
                                           points (make-point line col)))
          (else (error (string-append "parsing failed: " c)))))))
 
+(define (input-value point points)
+ (let* ((x (point-x point))
+        (y (point-y point))
+        (n  (list
+             (assoc (make-point (1- x) (1- y)) points)
+             (assoc (make-point     x  (1- y)) points)
+             (assoc (make-point (1+ x) (1- y)) points)
+             (assoc (make-point (1- x)     y ) points)
+             (assoc (make-point     x      y ) points)
+             (assoc (make-point (1+ x)     y ) points)
+             (assoc (make-point (1- x) (1+ y)) points)
+             (assoc (make-point     x  (1+ y)) points)
+             (assoc (make-point (1+ x) (1+ y)) points)))
+        (n (fold (lambda (cur num) (+ (* 2 num) (if cur 1 0)))
+                 0
+                 n)))
+    n))
+
 (define (output-pixel value enhancement)
     (list-ref enhancement value))
+
+(define (image-line->string image x)
+  (let* ((p-max (image-point-max image))
+         (p-min (image-point-min image))
+         (y-min (1- (point-y p-min)))
+         (y-max (1+ (point-y p-max)))
+         (points (image-points image)))
+    (let loop ((y y-min) (line '()))
+       (cond
+        ((> y y-max) (list->string (reverse (cons #\newline line))))
+        (else
+         (let ((char (if (assoc (make-point x y) points)
+                      #\#
+                      #\.)))
+           (loop (1+ y) (cons char line))))))))
+
+(define (image->string image)
+  (let* ((p-max (image-point-max image))
+         (p-min (image-point-min image))
+         (x-min (1- (point-x p-min)))
+         (x-max (1+ (point-x p-max))))
+    (let loop ((x x-min) (lines '()))
+       (cond
+        ((> x x-max) (string-concatenate (reverse lines)))
+        (else
+           (loop (1+ x) (cons (image-line->string image x) lines)))))))
 
 (define-public (main args)
    (let* (

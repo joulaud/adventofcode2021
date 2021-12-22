@@ -28,6 +28,7 @@
 (import-private parse-image)
 (import-private make-image)
 (import-private make-point)
+(import-private image->string)
 
 (test-begin "parsing")
 (test-equal '(#f #t #t) (parse-enhancement ".##"))
@@ -36,6 +37,15 @@
                               (cons (make-point 1 0) #t)))
             (parse-image (open-input-string ".#\n#.\n")))
 (test-end "parsing")
+
+(test-begin "printing")
+(test-equal
+  "....
+..#.
+.#..
+...."
+  (image->string (parse-image (open-input-string ".#\n#.\n"))))
+(test-end "printing")
 
 (test-begin "XXX")
 (dbg "XXX" "X")
