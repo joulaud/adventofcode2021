@@ -37,30 +37,49 @@
   (score-p2 score-p2 set-score-p2)
   (position-p2 position-p2 set-position-p2))
 
-(define-public (make-all-possible-games)
-  (let* ((scores (iota 22 0))
-         (positions (iota 10 1))
-         (combinations (combine*
-                          scores
-                          positions
-                          scores
-                          positions)))
-   (map (cut apply make-game <>) combinations)))
+(define (game->string game)
+  (format #f "(~a)~a  . (~a)~a"
+          (position-p1 game) (score-p1 game)
+          (position-p2 game) (score-p2 game)))
 
 (define (game-winner? game)
   (or (>= (score-p1 game) 21)
       (>= (score-p2 game) 21)))
 
+(define (add-counts-win-not-win-win-p1-win-p2 g n res)
+  (let* ((win (first res))
+         (win (if (game-winner? g) (+ win n) win))
+         (not-win (second res))
+         (not-win (if (game-winner? g) not-win (+ not-win n)))
+         (p1 (third res))
+         (p1 (if (>= (score-p1 g) 21) (+ p1 n) p1))
+         (p2 (fourth res))
+         (p2 (if (>= (score-p2 g) 21) (+ p2 n) p2)))
+    (list win not-win p1 p2)))
+
+(define (counting games)
+  (hash-table-fold
+                 games
+                 add-counts-win-not-win-win-p1-win-p2
+                 (list 0 0 0 0)))
+
 (define (all-winners? games)
   (let ((count-not-winner (hash-table-fold
                             games
-                            (lambda (g _ res)
-                              (+ res (if (game-winner? g) 0 1)))
-                            0)))
-    (dbg "count-not-winner=" count-not-winner)
+                            (lambda (g n res)
+                              (+ res (if (game-winner? g) 0 n)))
+                            0))
+        (count-winner (hash-table-fold
+                          games
+                          (lambda (g n res)
+                            (+ res (if (not (game-winner? g)) 0 n)))
+                          0)))
+
     (<= count-not-winner 0)))
 
 (define (play-player1 game movement)
+  ;(dbg "p1 winner,move=" (list (game-winner? game) movement))
+  ;(dbg "before=" (game->string game))
   (cond
    ((game-winner? game)
     game)
@@ -71,9 +90,12 @@
               (new-score (+ position (score-p1 game)))
               (game (set-position-p1 game position))
               (game (set-score-p1 game new-score)))
-          game))))
+         ;(dbg " after=" (game->string game))
+         game))))
 
 (define (play-player2 game movement)
+  ;(dbg "p2 winner,move=" (list (game-winner? game) movement))
+  ;(dbg "before=" (game->string game))
   (cond
    ((game-winner? game)
     game)
@@ -84,6 +106,7 @@
               (new-score (+ position (score-p2 game)))
               (game (set-position-p2 game position))
               (game (set-score-p2 game new-score)))
+          ;(dbg " after=" (game->string game))
           game))))
 
 (define (inc-game-in-vlist! game num vlist)
@@ -121,21 +144,13 @@
 (define (play-all games)
      (cond
       ((all-winners? games)
-       (let* ((wins-player1 (hash-table-fold
-                             games
-                             (lambda (g n count) (if (>= (score-p1 g) 21) (+ n count) count))
-                             0))
-              (wins-player2 (hash-table-fold
-                             games
-                             (lambda (g n count) (if (>= (score-p2 g) 21) (+ n count) count))
-                             0)))
-         (values wins-player1 wins-player2)))
+       (values 0 0))
       (else
        (let* (;(_ (dbg "G1=" games))
               (games (hash-table-fold games play-1-game-player1 (make-hash-table)))
-              ;(_ (dbg "G2=" games))
-              (games (hash-table-fold games play-1-game-player2 (make-hash-table))))
-              ;(_ (dbg "G3=" games)))
+              (_ (dbg "count1=" (counting games)))
+              (games (hash-table-fold games play-1-game-player2 (make-hash-table)))
+              (_ (dbg "count2=" (counting games))))
          (play-all games)))))
 
 (define-immutable-record-type <player>
@@ -213,9 +228,11 @@
                  ((result1) (* (player-score loser) num-plays))
                  ((first-game) (make-game 0 p1 0 p2))
                  ((first-games) (make-new-games first-game))
-                 (x (play-all (make-new-games (make-game 20 1 20 2))))
+                 (x (play-all (make-new-games (make-game 0 4 0 8))))
                  (_ (dbg "x=" x))
-                 ((wins-p1 wins-p2) (play-all first-games)))
+                 ((wins-p1 wins-p2) (values 42 42))) ;(play-all first-games)))
       (format #t "result1: ~a\n" result1)
+      (format #t "dices=~a\n" dice-results)
+      (format #t "two-dices=~a\n" (length (combine* dice-results dice-results)))
       (format #t "result2 wins player1: ~a\n" wins-p1)
       (format #t "result2 wins player2: ~a\n" wins-p2)))
