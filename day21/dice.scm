@@ -100,29 +100,26 @@
          (vlist (vhash-cons game new vlist)))
      vlist))
 
-(define (play-1-game-player1 game num vlist)
-  (let* ((new-game-dice-1 (play-player1 game 1))
-         (vlist (inc-game-in-vlist new-game-dice-1 num vlist))
-         (new-game-dice-2 (play-player1 game 2))
-         (vlist (inc-game-in-vlist new-game-dice-2 num vlist))
-         (new-game-dice-3 (play-player1 game 3))
-         (vlist (inc-game-in-vlist new-game-dice-3 num vlist)))
-    vlist))
+(define dice-results
+  (let* ((dice-combinations (combine* (iota 3 1) (iota 3 1) (iota 3 1)))
+         (dice-results (map (cut apply + <>) dice-combinations)))
+   dice-results))
 
-(define (play-1-game-player2 game num vlist)
-  (let* ((new-game-dice-1 (play-player2 game 1))
-         (vlist (inc-game-in-vlist new-game-dice-1 num vlist))
-         (new-game-dice-2 (play-player2 game 2))
-         (vlist (inc-game-in-vlist new-game-dice-2 num vlist))
-         (new-game-dice-3 (play-player2 game 3))
-         (vlist (inc-game-in-vlist new-game-dice-3 num vlist)))
-    vlist))
+(define (play-1-game-func f)
+ (lambda (game num new-games)
+  (let* (
+         (games-after-quantum-dice (map (cut f game <>) dice-results))
+         (new-games (fold
+                     (cut inc-game-in-vlist <> num <>)
+                     new-games
+                     games-after-quantum-dice)))
+    new-games)))
 
-(define (play-1-dice-player1 games)
-  (vhash-fold play-1-game-player1 vlist-null games))
+(define play-1-game-player1
+    (play-1-game-func play-player1))
 
-(define (play-1-dice-player2 games)
-  (vhash-fold play-1-game-player2 vlist-null games))
+(define play-1-game-player2
+    (play-1-game-func play-player2))
 
 (define (play-all games)
      (cond
@@ -137,14 +134,12 @@
                              games)))
          (values wins-player1 wins-player2)))
       (else
-       (let* ((new-games vlist-null)
-              (new-games (vhash-fold play-1-game-player1 new-games games))
-              (new-games (vhash-fold play-1-game-player1 new-games games))
-              (new-games (vhash-fold play-1-game-player1 new-games games))
-              (new-games (vhash-fold play-1-game-player2 new-games games))
-              (new-games (vhash-fold play-1-game-player2 new-games games))
-              (new-games (vhash-fold play-1-game-player2 new-games games)))
-         (play-all new-games)))))
+       (let* ((_ (dbg "G1=" games))
+              (games (vhash-fold play-1-game-player1 vlist-null games))
+              (_ (dbg "G2=" games))
+              (games (vhash-fold play-1-game-player2 vlist-null games))
+              (_ (dbg "G3=" games)))
+         (play-all games)))))
 
 (define-immutable-record-type <player>
   (make-player name position score)
@@ -203,6 +198,7 @@
      (else (let*-values (((p1 dice) (player-play p1 dice)))
                (loop p2 p1 dice))))))
 
+(use-modules (statprof))
 (define-public (main args)
    (let*-values (((p1) (read-line))
                  ((p1) (string->number p1))
@@ -215,6 +211,7 @@
                  ((result1) (* (player-score loser) num-plays))
                  ((first-game) (make-game 0 p1 0 p2))
                  ((first-games) (vhash-cons first-game 1 vlist-null))
+                 ((_) (statprof (lambda () (play-all (vhash-cons (make-game 13 1 13 2) 1 vlist-null)))))
                  ((wins-p1 wins-p2) (play-all first-games)))
       (format #t "result1: ~a\n" result1)
       (format #t "result2 wins player1: ~a\n" wins-p1)
