@@ -107,3 +107,21 @@
      x))
 
 
+;; copy-paste from https://stackoverflow.com/questions/5546552/scheme-recursive-function-to-compute-all-possible-combinations-of-some-lists/5547174#5547174
+(define (concat/map ls f)
+    (cond
+      ((null? ls) '())
+      (else (append (f (car ls)) (concat/map (cdr ls) f)))))
+
+(define (combine xs ys)
+    (concat/map xs (lambda (x)
+                     (map (lambda (y) (list x y)) ys))))
+
+(define-public (combine* xs . ys*)
+    (cond
+      [(null? ys*) (map list xs)]
+      [(null? (cdr ys*)) (combine xs (car ys*))]
+      [else (concat/map xs (lambda (x)
+                             (map (lambda (y) (cons x y))
+                                  (apply combine* ys*))))]))
+
