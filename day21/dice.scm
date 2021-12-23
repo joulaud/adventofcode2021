@@ -99,13 +99,18 @@
 
 (define (play-1-game-func f)
  (lambda (game num new-games)
-  (let* (
-         (games-after-quantum-dice (map (cut f game <>) dice-results))
-         (new-games (fold
-                     (cut inc-game-in-vlist! <> num <>)
-                     new-games
-                     games-after-quantum-dice)))
-    new-games)))
+  (cond
+   ((game-winner? game)
+    (hash-table-set! new-games game num)
+    new-games)
+   (else
+     (let* (
+            (games-after-quantum-dice (map (cut f game <>) dice-results))
+            (new-games (fold
+                        (cut inc-game-in-vlist! <> num <>)
+                        new-games
+                        games-after-quantum-dice)))
+       new-games)))))
 
 (define play-1-game-player1
     (play-1-game-func play-player1))
@@ -208,7 +213,8 @@
                  ((result1) (* (player-score loser) num-plays))
                  ((first-game) (make-game 0 p1 0 p2))
                  ((first-games) (make-new-games first-game))
-                 ;(_ (statprof (lambda () (play-all (make-new-games (make-game 13 1 13 2))))))
+                 (x (play-all (make-new-games (make-game 20 1 20 2))))
+                 (_ (dbg "x=" x))
                  ((wins-p1 wins-p2) (play-all first-games)))
       (format #t "result1: ~a\n" result1)
       (format #t "result2 wins player1: ~a\n" wins-p1)
