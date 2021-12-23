@@ -29,6 +29,19 @@
 (define (dbg t v) (format #t "~a~a\n" t v) (force-output))
 (define (dbgn t v) (format #t "~a~a  #  " t v) (force-output))
 
+
+(define-immutable-record-type <player>
+  (make-player name position score)
+  player?
+  (name player-name set-player-name)
+  (position player-position set-player-position)
+  (score player-score set-player-score))
+
+(define-immutable-record-type <dice>
+  (make-dice roll-count)
+  dice?
+  (roll-count dice-roll-count set-dice-roll-count))
+
 (define-immutable-record-type <game>
   (make-game score-p1 position-p1 score-p2 position-p2)
   game?
@@ -42,9 +55,11 @@
           (position-p1 game) (score-p1 game)
           (position-p2 game) (score-p2 game)))
 
+(define win-score 1000)
+
 (define (game-winner? game)
-  (or (>= (score-p1 game) 21)
-      (>= (score-p2 game) 21)))
+  (or (>= (score-p1 game) win-score)
+      (>= (score-p2 game) win-score)))
 
 (define (add-counts-win-not-win-win-p1-win-p2 g n res)
   (let* ((win (first res))
@@ -52,9 +67,9 @@
          (not-win (second res))
          (not-win (if (game-winner? g) not-win (+ not-win n)))
          (p1 (third res))
-         (p1 (if (>= (score-p1 g) 21) (+ p1 n) p1))
+         (p1 (if (>= (score-p1 g) win-score) (+ p1 n) p1))
          (p2 (fourth res))
-         (p2 (if (>= (score-p2 g) 21) (+ p2 n) p2)))
+         (p2 (if (>= (score-p2 g) win-score) (+ p2 n) p2)))
     (list win not-win p1 p2)))
 
 (define (counting games)
@@ -120,6 +135,15 @@
          (dice-results (map (cut apply + <>) dice-combinations)))
    dice-results))
 
+(define (new-dice)
+  (make-dice 1))
+
+(define my-dice (new-dice))
+(define (my-dice-results)
+  (let*-values (((val dice) (dice-roll-three my-dice)))
+      (set! my-dice dice)
+      (list val val)))
+
 (define (play-1-game-func f)
  (lambda (game num new-games)
   (cond
@@ -128,7 +152,7 @@
     new-games)
    (else
      (let* (
-            (games-after-quantum-dice (map (cut f game <>) dice-results))
+            (games-after-quantum-dice (map (cut f game <>) (my-dice-results)))
             (new-games (fold
                         (cut inc-game-in-vlist! <> num <>)
                         new-games
@@ -147,26 +171,14 @@
        (values 0 0))
       (else
        (let* (;(_ (dbg "G1=" games))
+              (_ (dbg "game0=" (hash-table-fold games (lambda (k v acc) (cons (game->string k) acc)) '())))
               (games (hash-table-fold games play-1-game-player1 (make-hash-table)))
               (_ (dbg "count1=" (counting games)))
+              (_ (dbg "game1=" (hash-table-fold games (lambda (k v acc) (cons (game->string k) acc)) '())))
               (games (hash-table-fold games play-1-game-player2 (make-hash-table)))
-              (_ (dbg "count2=" (counting games))))
+              (_ (dbg "count2=" (counting games)))
+              (_ (dbg "game2=" (hash-table-fold games (lambda (k v acc) (cons (game->string k) acc)) '()))))
          (play-all games)))))
-
-(define-immutable-record-type <player>
-  (make-player name position score)
-  player?
-  (name player-name set-player-name)
-  (position player-position set-player-position)
-  (score player-score set-player-score))
-
-(define-immutable-record-type <dice>
-  (make-dice roll-count)
-  dice?
-  (roll-count dice-roll-count set-dice-roll-count))
-
-(define (new-dice)
-  (make-dice 1))
 
 (define (player->string player)
    (let ((str (string-append
