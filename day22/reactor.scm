@@ -38,7 +38,13 @@
   (y-max cuboid-y-max set-cuboid-y-max)
   (z-min cuboid-z-min set-cuboid-z-min)
   (z-max cuboid-z-max set-cuboid-z-max)
-  (on? cuboid-on? set-cuboid-on))
+  (on? cuboid-on? set-cuboid-on-val))
+
+(define (set-cuboid-on cuboid)
+  (set-cuboid-on-val cuboid #t))
+
+(define (set-cuboid-off cuboid)
+  (set-cuboid-on-val cuboid #f))
 
 (define-record-type <reactor>
  (make-reactor-internal state cuboid)
@@ -66,7 +72,19 @@
                #t))
 
 (define (parse-reboot-step line)
-  (error "UNIMP"))
+  (match-let* (((on? ranges) (string-split line #\space))
+               (on?    (if (string=? on? "on") #t #f))
+               (ranges (string-split ranges #\,))
+               (ranges (map (cut substring <> 2) ranges)) ; get rid of "x=" prefix
+               (ranges (map
+                         (lambda (range)
+                           (map string->number
+                                (string-split-string range "..")))
+                         ranges))
+               (cuboid (coord-list->cuboid ranges)))
+     (set-cuboid-on-val cuboid on?)))
+
+
 
 (use-modules (statprof))
 (define-public (main args)
