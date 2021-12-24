@@ -41,6 +41,6 @@
 
 (test-begin "coord-list->cuboid")
 (test-equal (make-cuboid 1 2 3 4 5 6 #t)
-            (coord-list->cuboid '((1 . 2) (3 . 4) (5 . 6))))
+            (coord-list->cuboid '((1 2) (3 4) (5 6))))
 (test-begin "coord-list->cuboid")
 

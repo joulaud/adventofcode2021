@@ -57,7 +57,14 @@
                          cuboid-50))
 
 (define (coord-list->cuboid lst)
-  (error "UNIMP"))
+  (make-cuboid (first  (first lst))
+               (second (first lst))
+               (first  (second lst))
+               (second (second lst))
+               (first  (third lst))
+               (second (third lst))
+               #t))
+
 (define (parse-reboot-step line)
   (error "UNIMP"))
 
