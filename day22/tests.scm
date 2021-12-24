@@ -7,7 +7,8 @@
     #:use-module (srfi srfi-19)
     #:use-module (srfi srfi-41)
     #:use-module (srfi srfi-43)
-    #:use-module (srfi srfi-64))
+    #:use-module (srfi srfi-64)
+    #:use-module (srfi srfi-11)) ; let*-values
 
 (define (dbg t v) (format #t "~s: ~a\n" t v) (force-output))
 
@@ -55,5 +56,51 @@ on x=10..10,y=10..10,z=10..10")
 (test-begin "coord-list->cuboid")
 (test-equal (make-cuboid 1 2 3 4 5 6 #t)
             (coord-list->cuboid '((1 2) (3 4) (5 6))))
-(test-begin "coord-list->cuboid")
+(test-end "coord-list->cuboid")
 
+(test-begin "axis-intersect")
+(import-private axis-intersect)
+
+;; Disjoints
+(let*-values
+    (((both c1 c2) (axis-intersect 1 2 3 4)))
+ (test-equal '() both)
+ (test-equal '((1  . 2)) c1)
+ (test-equal '((3  . 4)) c2))
+
+;; Égaux
+(let*-values
+    (((both c1 c2) (axis-intersect 5 6 5 6)))
+ (test-equal '((5  . 6)) both)
+ (test-equal '() c1)
+ (test-equal '() c2))
+
+;; recouvrement à droite de c1
+(let*-values
+    (((both c1 c2) (axis-intersect 10 14 12 16)))
+ (test-equal '((12 . 14)) both)
+ (test-equal '((10 . 11)) c1)
+ (test-equal '((15 . 16)) c2))
+
+;; recouvrement à gauche de c1
+(let*-values
+    (((both c1 c2) (axis-intersect 12 16 10 14)))
+ (test-equal '((12 . 14)) both)
+ (test-equal '((15 . 16)) c1)
+ (test-equal '((10 . 11)) c2))
+
+;; c2 complètement inclus dans c1
+(let*-values
+    (((both c1 c2) (axis-intersect 20 26 22 24)))
+ (test-equal '((22 . 24)) both)
+ (test-equal '((20 . 21) (25 . 26)) c1)
+ (test-equal '() c2))
+
+;; c1 complètement inclus dans c2
+(let*-values
+    (((both c1 c2) (axis-intersect 22 24 20 26)))
+ (test-equal '((22 . 24)) both)
+ (test-equal '() c1)
+ (test-equal '((20 . 21) (25 . 26)) c2))
+
+(test-end "axis-intersect")
