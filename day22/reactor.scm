@@ -84,6 +84,16 @@
                (cuboid (coord-list->cuboid ranges)))
      (set-cuboid-on-val cuboid on?)))
 
+(define (parse-all-reboot-steps port)
+  (let parse-all-reboot-steps-rec ((line (read-line port))
+                                   (steps '()))
+      (cond
+       ((eof-object? line) (reverse steps))
+       (else
+        (parse-all-reboot-steps-rec (read-line port)
+                                    (cons (parse-reboot-step line)
+                                          steps))))))
+
 
 
 (use-modules (statprof))

@@ -22,10 +22,15 @@
          absolute-dirname))
 
 (define testdir (or (guess-current-dirname) (getcwd)))
+(define example-reboot-steps-str "on x=10..12,y=10..12,z=10..12
+on x=11..13,y=11..13,z=11..13
+off x=9..11,y=9..11,z=9..11
+on x=10..10,y=10..10,z=10..10")
 
 ;; import internal functions of module to test
 (import-private make-cuboid)
 (import-private parse-reboot-step)
+(import-private parse-all-reboot-steps)
 (import-private coord-list->cuboid)
 
 (test-begin "parse-reboot-step")
@@ -37,6 +42,14 @@
             (parse-reboot-step  "on x=11..13,y=11..13,z=11..13"))
 (test-equal (make-cuboid 9 11 9 11 9 11 #f)
             (parse-reboot-step  "off x=9..11,y=9..11,z=9..11"))
+(define all-reboot-steps
+                (parse-all-reboot-steps (open-input-string example-reboot-steps-str)))
+(test-equal (list
+             (make-cuboid 10 12 10 12 10 12 #t)
+             (make-cuboid 11 13 11 13 11 13 #t)
+             (make-cuboid 9 11 9 11 9 11 #f)
+             (make-cuboid 10 10 10 10 10 10 #t))
+            all-reboot-steps)
 (test-end "parse-reboot-step")
 
 (test-begin "coord-list->cuboid")
