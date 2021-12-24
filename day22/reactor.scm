@@ -29,6 +29,38 @@
 (define (dbg t v) (format #t "~a~a\n" t v) (force-output))
 (define (dbgn t v) (format #t "~a~a  #  " t v) (force-output))
 
+(define-immutable-record-type <cuboid>
+  (make-cuboid x-min x-max y-min y-max z-min z-max on?)
+  cuboid?
+  (x-min cuboid-x-min set-cuboid-x-min)
+  (x-max cuboid-x-max set-cuboid-x-max)
+  (y-min cuboid-y-min set-cuboid-y-min)
+  (y-max cuboid-y-max set-cuboid-y-max)
+  (z-min cuboid-z-min set-cuboid-z-min)
+  (z-max cuboid-z-max set-cuboid-z-max)
+  (on? cuboid-on? set-cuboid-on))
+
+(define-record-type <reactor>
+ (make-reactor-internal state cuboid)
+ reactor?
+ (state reactor-get-state! set-reactor-state!)
+ (cuboid reactor-cuboid))
+
+(define cuboid-50
+    (make-cuboid -50 50
+                 -50 50
+                 -50 50
+                 #f))
+
+(define (make-reactor cuboid)
+  (make-reactor-internal (make-hash-table)
+                         cuboid-50))
+
+(define (coord-list->cuboid lst)
+  (error "UNIMP"))
+(define (parse-reboot-step line)
+  (error "UNIMP"))
+
 (use-modules (statprof))
 (define-public (main args)
    (let*-values (

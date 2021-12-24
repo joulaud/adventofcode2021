@@ -24,4 +24,23 @@
 (define testdir (or (guess-current-dirname) (getcwd)))
 
 ;; import internal functions of module to test
-;(import-private parse-enhancement)
+(import-private make-cuboid)
+(import-private parse-reboot-step)
+(import-private coord-list->cuboid)
+
+(test-begin "parse-reboot-step")
+(test-equal '( "A" "B" "CC")
+            (string-split-string "A..B..CC" ".."))
+(test-equal (make-cuboid 10 12 10 12 10 12 #t)
+            (parse-reboot-step "on x=10..12,y=10..12,z=10..12"))
+(test-equal (make-cuboid 11 13 11 13 11 13 #t)
+            (parse-reboot-step  "on x=11..13,y=11..13,z=11..13"))
+(test-equal (make-cuboid 9 11 9 11 9 11 #f)
+            (parse-reboot-step  "off x=9..11,y=9..11,z=9..11"))
+(test-end "parse-reboot-step")
+
+(test-begin "coord-list->cuboid")
+(test-equal (make-cuboid 1 2 3 4 5 6 #t)
+            (coord-list->cuboid '((1 . 2) (3 . 4) (5 . 6))))
+(test-begin "coord-list->cuboid")
+

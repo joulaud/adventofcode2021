@@ -125,3 +125,6 @@
                              (map (lambda (y) (cons x y))
                                   (apply combine* ys*))))]))
 
+(define-public (string-split-string str spl)
+  (error "UNIMP"))
+
