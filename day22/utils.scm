@@ -126,5 +126,13 @@
                                   (apply combine* ys*))))]))
 
 (define-public (string-split-string str spl)
-  (error "UNIMP"))
+ (let ((spl-l (string-length spl)))
+   (let string-split-string-rec ((index 0) (result '()))
+     (let* ((spl-index (string-contains str spl index)))
+       (cond
+        (spl-index (let* ((next-index (+ spl-index spl-l))
+                          (extracted (substring str index spl-index)))
+                       (string-split-string-rec next-index (cons extracted result))))
+        (else (reverse (cons (substring str index)
+                             result))))))))
 
