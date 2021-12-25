@@ -162,4 +162,5 @@
                     (result (proc c1 c2 c3 result)))
                (fold-rec-3 (cdr l3) result))))))
 
-
+(define-public (digit->number c)
+  (- (char->integer c) (char->integer #\0)))
