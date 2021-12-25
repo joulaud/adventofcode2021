@@ -86,6 +86,27 @@
                (cdr (third lst))
                #t))
 
+(define-immutable-record-type <range>
+  (make-range vmin vmax subranges)
+  range?
+  (vmin range-min set-range-min)
+  (vmax range-max set-range-max)
+  (subranges range-subs set-range-subs))
+
+(define (range-empty? range)
+  (<= (range-max range) (range-min range)))
+
+(define (range<? a b)
+  (or (< (range-min a) (range-min b))
+      (and (= (range-min a) (range-min b))
+           (< (range-max a) (range-max b)))))
+
+(define (cuboid->range cuboid)
+   (let* ((subrange-z (make-range (cuboid-z-min cuboid) (cuboid-z-max cuboid) #t))
+          (subrange-y (make-range (cuboid-y-min cuboid) (cuboid-y-max cuboid) (list subrange-z)))
+          (range-x (make-range (cuboid-x-min cuboid) (cuboid-x-max cuboid) (list subrange-y))))
+    range-x))
+
 (define (parse-reboot-step line)
   (match-let* (((on? ranges) (string-split line #\space))
                (on?    (if (string=? on? "on") #t #f))
@@ -522,79 +543,59 @@
 (define cuboids-normalise-x-range
   (cuboids-normalise-by-axis 'x cuboids->all-x cuboids-restricted-to-x-range cuboids-normalise-y-range))
 
-(define (old-cuboids-normalise-x-range cuboids)
-    (let* ((all-x (cuboids->all-x cuboids))
-           (x-ranges (all-subintervals all-x))
-           (cuboids (map
-                         (lambda (x)
-                            (let* ((x-min (first x))
-                                   (x-max (second x))
-                                   (this-cuboids (cuboids-restricted-to-x-range cuboids x-min x-max))
-                                   (this-cuboids (cuboids-normalise-y-range this-cuboids)))
-                                this-cuboids))
-                         x-ranges)))
-        (concatenate cuboids)))
+(define (normalize-sub-ranges range)
+   (cond
+    ((eq? #t (range-subs range)) range)
+    (else (set-range-subs range (normalize-range-list (range-subs range))))))
 
-(define (old-cuboids-normalise-y-range cuboids)
-    (let* ((all-y (cuboids->all-y cuboids))
-           (y-ranges (all-subintervals all-y))
-           (cuboids (map
-                         (lambda (x)
-                            (let* ((y-min (first x))
-                                   (y-max (second x))
-                                   (this-cuboids (cuboids-restricted-to-y-range cuboids y-min y-max))
-                                   (this-cuboids (cuboids-normalise-z-range this-cuboids)))
-                                this-cuboids))
-                         y-ranges)))
-        (concatenate cuboids)))
-
-(define (old-cuboids-normalise-z-range cuboids)
-    (let* ((all-z (cuboids->all-z cuboids))
-           (z-ranges (all-subintervals all-z))
-           (cuboids (map
-                         (lambda (x)
-                            (let* ((z-min (first x))
-                                   (z-max (second x))
-                                   (this-cuboids (cuboids-restricted-to-z-range cuboids z-min z-max)))
-                                this-cuboids))
-                         z-ranges)))
-        (concatenate cuboids)))
-    
+(define (sub-range-append x y)
+   ;; Un subrange est soit
+   ;; - #t dans le cas d'un range terminal sans autre dimension
+   ;; - une liste dans laquelle on met les ranges de la dimension suivant
+   ;; Les deux sont mutuellement exclusifs.
+   (cond
+     ((and (eq? #t x) (eq? #t y)) #t)
+     ((and (list? x) (list? y)) (append x y))
+     (else (error (format #f "'~a' and '~a' are not of the same type " x y)))))
 
 (define (normalize-range-list range-list)
-   (let normalize-rec ((lst range-list) (result '()))
+   (let normalize-rec ((lst (sort range-list range<?)) (result '()))
        (cond
-        ((null? lst) (reverse (filter (lambda (p)
-                                         (not (= (car p) (cdr p))))
-                                      result)))
-        ((null? result) (normalize-rec (cdr lst) (cons (car lst) result)))
-        (else (let* ((prec (car result)) (prec-min (car prec)) (prec-max (cdr prec))
-                     (cur (car lst)) (cur-min (car cur)) (cur-max (cdr cur)))
+        ((null? lst) (reverse (map
+                               normalize-sub-ranges
+                               (filter (lambda (rg)
+                                          (not (range-empty? rg)))
+                                      result))))
+        ((null? result) (normalize-rec (cdr lst) (list (car lst))))
+        (else (let* ((prec (car result)) (prec-min (range-min prec)) (prec-max (range-max prec)) (prec-sub (range-subs prec))
+                     (cur (car lst)) (cur-min (range-min cur)) (cur-max (range-max cur)) (cur-sub (range-subs cur)))
                 (cond
-                 ((and (= prec-min cur-min) (= prec-max cur-max))
-                  (normalize-rec (cdr lst) result))
-                 ((<= prec-min prec-max cur-min cur-max)
-                  (normalize-rec (cdr lst) (cons cur result)))
-                 ((<= prec-min cur-min prec-max cur-max)
-                  (normalize-rec (cdr lst)
-                                 (cons*
-                                   (cons prec-max cur-max)
-                                   (cons cur-min prec-max)
-                                   (cons prec-min cur-min)
-                                   (cdr result))))
-                 ((<= prec-min cur-min cur-max prec-max)
-                  (normalize-rec (cdr lst)
-                                 (cons*
-                                   (cons cur-max prec-max)
-                                   (cons cur-min cur-max)
-                                   (cons prec-min cur-min)
-                                   (cdr result))))
-                 ((< cur-min prec-min)
+                 ((< cur-min prec-min) ;; on n'est pas dans le bon ordre, on remet les deux dans lst
                   (normalize-rec (cons*
                                   cur
                                   prec
                                   (cdr lst))
-                                 (cdr result)))))))))
+                                 (cdr result)))
+                 ((and (= prec-min cur-min) (= prec-max cur-max)) ; redondant mais optimise et limite les cas de ranges vides
+                  (normalize-rec (cdr lst) (cons (make-range cur-min cur-max (sub-range-append prec-sub cur-sub)) (cdr result))))
+                 ((<= prec-min prec-max cur-min cur-max) ; cur et prec sont disjoints
+                  (normalize-rec (cdr lst) (cons cur result)))
+                 ((<= prec-min cur-min prec-max cur-max) ; cur et prec se chevauchent
+                  (normalize-rec (cdr lst)
+                                 (cons*
+                                   (make-range prec-max cur-max cur-sub)
+                                   (make-range cur-min prec-max (sub-range-append prec-sub cur-sub))
+                                   (make-range prec-min cur-min prec-sub)
+                                   (cdr result))))
+                 ((<= prec-min cur-min cur-max prec-max) ; cur est inclus dans prec
+                  (normalize-rec (cdr lst)
+                                 (cons*
+                                   (make-range cur-max prec-max prec-sub)
+                                   (make-range cur-min cur-max (sub-range-append prec-sub cur-sub))
+                                   (make-range prec-min cur-min prec-sub)
+                                   (cdr result))))))))))
+
+
 
 (use-modules (statprof))
 (define-public (main args)
@@ -617,4 +618,5 @@
                  ((result2) (cuboids-size cuboids)))
       (format #t "result1: ~a\n" result1)
       (format #t "result2: ~a\n" result2)))
+
 
