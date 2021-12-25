@@ -548,6 +548,18 @@
     ((eq? #t (range-subs range)) range)
     (else (set-range-subs range (normalize-range-list (range-subs range))))))
 
+(define (range-size range)
+    (let* ((vmin (range-min range))
+           (vmax (range-max range))
+           (width (- vmax vmin))
+           (subs (range-subs range)))
+       (cond
+         ((eq? #t subs) width)
+         (else
+           (let* ((subsizes (map range-size subs))
+                  (subsize (fold + 0 subsizes)))
+             (* width subsize))))))
+
 (define (sub-range-append x y)
    ;; Un subrange est soit
    ;; - #t dans le cas d'un range terminal sans autre dimension
