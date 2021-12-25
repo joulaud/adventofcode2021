@@ -48,22 +48,23 @@
    (regs state-regs set-state-regs)
    (input state-input set-state-input))
 
-(define (get-reg registers name)
-  (case name
-      ((#\w) (reg-w registers))
-      ((#\x) (reg-x registers))
-      ((#\y) (reg-y registers))
-      ((#\z) (reg-z registers))))
+(define (get-reg-or-immediate registers val)
+  (cond
+      ((string=? "w" val) (reg-w registers))
+      ((string=? "x" val) (reg-x registers))
+      ((string=? "y" val) (reg-y registers))
+      ((string=? "z" val) (reg-z registers))
+      (else (string->number val))))
 
 (define (set-reg registers name val)
-  (case name
-      ((#\w) (set-reg-w registers val))
-      ((#\x) (set-reg-x registers val))
-      ((#\y) (set-reg-y registers val))
-      ((#\z) (set-reg-z registers val))))
+  (cond
+      ((string=? "w" name) (set-reg-w registers val))
+      ((string=? "x" name) (set-reg-x registers val))
+      ((string=? "y" name) (set-reg-y registers val))
+      ((string=? "z" name) (set-reg-z registers val))
+      (else (error (format #f "unknown register '~a'" name)))))
 
 (define (read-input input)
-  (dbg "input=" input)
   (cond
    ((null? input)
     (values #f
@@ -75,7 +76,6 @@
 (define (inp args)
    (lambda (regs input)
      (let*-values (((val input) (read-input input)))
-        (dbg "val=" val)
         (make-state
          (set-reg regs (car args) val)
          input))))
@@ -84,10 +84,8 @@
    (lambda (regs input)
      (let* ((a (first args))
             (b (second args))
-            (_ (dbg "a,b=" (list a b)))
-            (aval (get-reg regs a))
-            (bval (get-reg regs b))
-            (_ (dbg "aval,bval=" (list aval bval)))
+            (aval (get-reg-or-immediate regs a))
+            (bval (get-reg-or-immediate regs b))
             (result (op aval bval)))
       (make-state
        (set-reg regs a result)
@@ -96,7 +94,7 @@
 (define (run program input)
   (fold
     (lambda (op state)
-      (print-registers (state-regs state))
+      ;(print-registers (state-regs state))
       (op (state-regs state) (state-input state)))
     (make-state empty-registers input)
     program))
@@ -106,8 +104,6 @@
          (op-name (car full-op))
          (op-args (cdr full-op))
          (_ (dbg "ops=" (list op-name op-args)))
-         (op-args (map (cut string-ref <> 0)
-                       op-args))
          (op (cond
               ((string= op-name "inp") (inp op-args))
               ((string= op-name "add") (bin-op + op-args))
@@ -127,38 +123,36 @@
       (parse-program-rec (read-line port)
                          (cons (line->op line) result))))))
 
-(define (valid-model-input? input)
-    (not (any (cut char=? #\0 <>) input)))
-
-(define (next-model-number-candidate num)
-  (let next-rec ((num num))
-    (let ((num-as-list (string->list (number->string num))))
-      (cond
-       ((< num (expt 10 13))
-        (error (format #f "nombre ~a avec moins de 14 chiffres" num)))
-       ((valid-model-input? num-as-list)
-        (values num num-as-list))
-       (else (next-rec (1- num)))))))
+(define (num->monad-input num)
+  (let num->list-rec ((num num) (result '()))
+     (cond
+      ((= 0 num) result)
+      (else
+        (let* ((last-digit (remainder num 10))
+               (other-digits (quotient num 10)))
+         (cond
+          ((= 0 last-digit) #f) ;; if it contains a digit 0 it is not a MONAD number
+          (else (num->list-rec other-digits (cons last-digit result)))))))))
 
 (define (valid-end-state? state)
-  (= 0 reg-z (state-regs state)))
+  (= 0 (reg-z (state-regs state))))
 
-(define (highest-fourtenn-digit-validated program)
-   (let highest-rec ((num (expt 10 14)))
-     (let*-values (((num num-as-list) (next-model-number-candidate (1- num)))
-                   (_ (dbg "E" (list num num-as-list)))
-                   (_ (dbg "f" num-as-list))
-                   ((num-as-list) (map digit->number num-as-list))
-                   (_ (dbg "F" num-as-list))
-                   ((final-state) (run program num-as-list)))
-             (cond
-              ((valid-end-state? final-state) num)
-              (else (highest-rec num))))))
+(define (highest-fourtenn-digit-validated program from)
+   (let highest-rec ((num from))
+     (let* ((num-as-list (num->monad-input num))
+            (final-state (if num-as-list (run program num-as-list) #f))
+            (valid? (if final-state (valid-end-state? final-state) #f)))
+        (if (= 0 (remainder num 10000)) (dbg "h:" (list num valid?)))
+        (cond
+         (valid? num)
+         (else (highest-rec (1- num)))))))
 
+(use-modules (statprof))
 (define-public (main args)
    (let*-values (
                  ((program) (parse-program (current-input-port)))
-                 ((result1) (highest-fourtenn-digit-validated program))
+                 ;(_ (statprof (lambda () (highest-fourtenn-digit-validated program (+ 5000000 (expt 10 13))))))
+                 ((result1) (highest-fourtenn-digit-validated program (expt 10 14)))
                  ((result2) "UNIMP"))
       (format #t "result1: ~a\n" result1)
       (format #t "result2: ~a\n" result2)))
