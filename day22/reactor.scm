@@ -11,7 +11,8 @@
     #:use-module (srfi srfi-41) ; Streams
     #:use-module (srfi srfi-43) ; Vectors iterators
     #:use-module (srfi srfi-26) ; cut (specializing parameters, currying alternative)
-    #:use-module (srfi srfi-69)) ; hash tables
+    #:use-module (srfi srfi-69) ; hash tables
+    #:use-module (srfi srfi-171)) ; transducers
 
 (use-modules (ice-9 rdelim))
 (use-modules (ice-9 match))
@@ -275,16 +276,19 @@
 (define (cuboids-to-hash-cubes cuboids)
    (let* ((cubes (make-hash-table)))
      (for-each
-      (lambda (cuboid) (add-cuboid-to-hash-cubes! cubes cuboid))
+      (lambda (cuboid) (if (cuboid-on? cuboid) (add-cuboid-to-hash-cubes! cubes cuboid)))
       cuboids)
      cubes))
 
 (define (cuboid-size cuboid)
+  (cond
+   ((cuboid-on? cuboid)
     (let* ((x-size (max 0 (1+ (- (cuboid-x-max cuboid) (cuboid-x-min cuboid)))))
            (y-size (max 0 (1+ (- (cuboid-y-max cuboid) (cuboid-y-min cuboid)))))
            (z-size (max 0 (1+ (- (cuboid-z-max cuboid) (cuboid-z-min cuboid)))))
            (cuboid-size (* x-size y-size z-size)))
        cuboid-size))
+   (else 0)))
 
 (define (cuboid-intersect c1 c2)
     (let* ((x-min (max (cuboid-x-min c1) (cuboid-x-min c2)))
@@ -402,7 +406,7 @@
         (else (let* ((cur (car cuboids))
                      (rest (cdr cuboids))
                      (x-min (cuboid-x-min cur))
-                     (x-max (cuboid-x-max cur))
+                     (x-max (1+ (cuboid-x-max cur)))
                      (result (cons x-min (cons x-max result))))
                  (loop rest result))))))
 
@@ -414,7 +418,7 @@
         (else (let* ((cur (car cuboids))
                      (rest (cdr cuboids))
                      (y-min (cuboid-y-min cur))
-                     (y-max (cuboid-y-max cur))
+                     (y-max (1+ (cuboid-y-max cur)))
                      (result (cons y-min (cons y-max result))))
                  (loop rest result))))))
 
@@ -426,7 +430,7 @@
         (else (let* ((cur (car cuboids))
                      (rest (cdr cuboids))
                      (z-min (cuboid-z-min cur))
-                     (z-max (cuboid-z-max cur))
+                     (z-max (1+ (cuboid-z-max cur)))
                      (result (cons z-min (cons z-max result))))
                  (loop rest result))))))
 
@@ -478,7 +482,6 @@
   (lambda (cuboids)
     (let*  ((all-n (f-all-n cuboids))
             (n-ranges (all-subintervals all-n))
-            (_ (dbg "rng:" (list axis n-ranges)))
             (cuboids (map
                           (lambda (x)
                              (let* ((n-min (first x))
@@ -489,10 +492,26 @@
                           n-ranges)))
         (concatenate cuboids))))
 
-;;(define (cuboids-normalise-ter cuboids)
-;;    (let*  ((all-x (cuboids->all-x cuboids))
-;;            (all-y (cuboids->all-y cuboids))
-;;            (all-y (cuboids->all-y cuboids)))))
+(define (cuboids-normalise-ter cuboids)
+    (let*  ((all-x (cuboids->all-x cuboids))
+            (all-x (zip all-x (map 1- (cdr all-x))))
+            (all-y (cuboids->all-y cuboids))
+            (all-y (zip all-y (map 1- (cdr all-y))))
+            (all-z (cuboids->all-z cuboids))
+            (all-z (zip all-z (map 1- (cdr all-z))))
+            (_ (dbg "intervals=" (list all-x all-y all-z)))
+            (cuboids (fold-three-combinations
+                       (lambda (x y z acc)
+                         (let ((c (coord-list->cuboid (list x y z))))
+                           (cond
+                            ((any (cut cuboid-included c <>) cuboids)
+                             (cons c acc))
+                            (else acc))))
+                       '()
+                       all-x
+                       all-y
+                       all-z)))
+      cuboids))
 
 (define cuboids-normalise-z-range
   (cuboids-normalise-by-axis 'z cuboids->all-z cuboids-restricted-to-z-range identity))
@@ -540,23 +559,26 @@
                                 this-cuboids))
                          z-ranges)))
         (concatenate cuboids)))
-
+    
 (use-modules (statprof))
 (define-public (main args)
    (let*-values (
                  ((steps) (parse-all-reboot-steps (current-input-port)))
                  ((steps-restricted) (map (cute cuboid-intersect cuboid-50 <>) steps))
                  ((cuboids-restricted) (cuboids-apply-all-reboot-steps '() steps-restricted))
-                 ((cuboids-restricted) (cuboids-normalise-x-range cuboids-restricted))
+                 (_ (dbg "L=" (length cuboids-restricted)))
+                 ((cuboids-restricted) (cuboids-normalise-ter cuboids-restricted))
                  ((size) (cuboids-size cuboids-restricted))
                  ((size-bis) (cuboids-size-bis cuboids-restricted))
+                 (_ (dbg "s,S,L=" (list size size-bis (length cuboids-restricted))))
                  ((result1) size-bis)
                  ((cuboids) (cuboids-apply-all-reboot-steps '() steps))
-                 (_ (dbg "cuboids-length=" (length cuboids)))
-                 (_ (dbg "all-x=" (cuboids->all-x cuboids)))
-                 ((cuboids) (cuboids-normalise-x-range cuboids))
-                 (_ (dbg "all-x=" (cuboids->all-x cuboids)))
-                 (_ (dbg "cuboids-length=" (length cuboids)))
+                 (_ (dbg "L=" (length cuboids)))
+                 (_ (statprof (lambda () (cuboids-normalise-ter cuboids))))
+                 (_ (exit))
+                 ((cuboids) (cuboids-normalise-ter cuboids))
+                 (_ (dbg "L=" (length cuboids)))
                  ((result2) (cuboids-size cuboids)))
       (format #t "result1: ~a\n" result1)
       (format #t "result2: ~a\n" result2)))
+

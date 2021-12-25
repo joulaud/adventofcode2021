@@ -136,3 +136,30 @@
         (else (reverse (cons (substring str index)
                              result))))))))
 
+
+(define-public (fold-three-combinations proc init l1 l2 l3)
+   (let fold-rec-1 ((l1 l1) (result init))
+      (dbg "l1:" (length l1))
+      (cond
+       ((null? l1) result)
+       (else (let* ((c1 (car l1))
+                    (result (fold-sub-two-combinations proc result c1 l2 l3)))
+               (fold-rec-1 (cdr l1) result))))))
+
+(define (fold-sub-two-combinations proc init c1 l2 l3)
+   (let fold-rec-2 ((l2 l2) (result init))
+      (cond
+       ((null? l2) result)
+       (else (let* ((c2 (car l2))
+                    (result (fold-sub-one-combinations proc result c1 c2 l3)))
+               (fold-rec-2 (cdr l2) result))))))
+
+(define (fold-sub-one-combinations proc init c1 c2 l3)
+   (let fold-rec-3 ((l3 l3) (result init))
+      (cond
+       ((null? l3) result)
+       (else (let* ((c3 (car l3))
+                    (result (proc c1 c2 c3 result)))
+               (fold-rec-3 (cdr l3) result))))))
+
+
