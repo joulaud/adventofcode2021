@@ -46,6 +46,11 @@
 (define (set-cuboid-off cuboid)
   (set-cuboid-on-val cuboid #f))
 
+(define (cuboid-not-empty? cuboid)
+   (and (<= (cuboid-x-min cuboid) (cuboid-x-max cuboid))
+        (<= (cuboid-y-min cuboid) (cuboid-y-max cuboid))
+        (<= (cuboid-z-min cuboid) (cuboid-z-max cuboid))))
+
 (define-record-type <reactor>
  (make-reactor-internal state cuboid)
  reactor?
@@ -69,6 +74,15 @@
                (second (second lst))
                (first  (third lst))
                (second (third lst))
+               #t))
+
+(define (coord-pairs->cuboid lst)
+  (make-cuboid (car (first lst))
+               (cdr (first lst))
+               (car (second lst))
+               (cdr (second lst))
+               (car (third lst))
+               (cdr (third lst))
                #t))
 
 (define (parse-reboot-step line)
@@ -123,10 +137,215 @@
    (else
     (values '() '() '()))))
 
+(define (range-merge lst)
+ ;; lst est une list de paires (min . max)
+ (let ((lst (sort lst (lambda (a b) (or
+                                      (< (car a) (car b))
+                                      (and  (= (car a) (car b)) (< (cdr a) (cdr b))))))))
+    (let range-merge-rec ((lst (cdr lst)) (result (list (car lst))))
+            (cond
+             ((null? lst) result)
+             (else
+              (let* ((rest (cdr lst))
+                     (cur (car lst))
+                     (cur-result (car result))
+                     (rest-result (cdr result)))
+                (cond
+                 ((<= (car cur) (1+ (cdr cur-result)))
+                  (range-merge-rec rest (cons (cons (car cur-result) (cdr cur))
+                                              rest-result)))
+                 (else
+                  (range-merge-rec rest (cons cur result))))))))))
+
+(define (ranges-only x-both y-both z-both x-only y-only z-only)
+  (let* ((x-only+both (range-merge (append x-only x-both)))
+         (z-only+both (range-merge (append z-only z-both)))
+         (y-only+both (range-merge (append y-only y-both)))
+         (ranges (append
+                    (combine* x-only y-only+both z-only+both)
+                    (combine* x-both y-only z-only+both)
+                    (combine* x-both y-both z-only))))
+         ;(_ (dbg "ranges=" ranges)))
+     ranges))
+
+(define (ranges->cuboids ranges)
+  (let* ((cuboids (map coord-pairs->cuboid ranges))
+         (cuboids (filter cuboid-not-empty? cuboids)))
+    cuboids))
+
+(define (cuboid-split-to-apply old reboot-step)
+    (cond
+     ((cuboid-on? reboot-step)
+      (error "should never happen"))
+     (else
+        (let*-values (((x-both x-old x-new) (axis-intersect (cuboid-x-min old)
+                                                            (cuboid-x-max old)
+                                                            (cuboid-x-min reboot-step)
+                                                            (cuboid-x-max reboot-step)))
+                      ((y-both y-old y-new) (axis-intersect (cuboid-y-min old)
+                                                            (cuboid-y-max old)
+                                                            (cuboid-y-min reboot-step)
+                                                            (cuboid-y-max reboot-step)))
+                      ((z-both z-old z-new) (axis-intersect (cuboid-z-min old)
+                                                            (cuboid-z-max old)
+                                                            (cuboid-z-min reboot-step)
+                                                            (cuboid-z-max reboot-step))))
+           (let* ((ranges (ranges-only x-both y-both z-both x-old y-old z-old))
+                  (cuboids (ranges->cuboids ranges)))
+              cuboids)))))
+
+(define (cuboid-included c1 c2)
+   (and (>= (cuboid-x-min c1) (cuboid-x-min c2))
+        (>= (cuboid-y-min c1) (cuboid-y-min c2))
+        (>= (cuboid-z-min c1) (cuboid-z-min c2))
+        (<= (cuboid-x-max c1) (cuboid-x-max c2))
+        (<= (cuboid-y-max c1) (cuboid-y-max c2))
+        (<= (cuboid-z-max c1) (cuboid-z-max c2))))
+
+;(define (cuboid-adjacent c1 c2)
+;   (and (= (cuboid-x-min c1) (cuboid-x-min c2))
+;        (= (cuboid-x-max c1) (cuboid-x-max c2))
+;        (= (cuboid-y-min c1) (cuboid-y-min c2))
+;        (= (cuboid-y-max c1) (cuboid-y-max c2))))
+
+(define (cuboid<? c1 c2)
+  (or
+   (< (cuboid-x-min c1) (cuboid-x-min c2))
+   (and (= (cuboid-x-min c1) (cuboid-x-min c2))
+        (< (cuboid-y-min c1) (cuboid-y-min c2)))
+   (and (= (cuboid-x-min c1) (cuboid-x-min c2))
+        (= (cuboid-y-min c1) (cuboid-y-min c2))
+        (< (cuboid-z-min c1) (cuboid-z-min c2)))
+   (and (= (cuboid-x-min c1) (cuboid-x-min c2))
+        (= (cuboid-y-min c1) (cuboid-y-min c2))
+        (= (cuboid-z-min c1) (cuboid-z-min c2))
+        (< (cuboid-x-max c1) (cuboid-x-max c2)))
+   (and (= (cuboid-x-min c1) (cuboid-x-min c2))
+        (= (cuboid-y-min c1) (cuboid-y-min c2))
+        (= (cuboid-z-min c1) (cuboid-z-min c2))
+        (= (cuboid-x-max c1) (cuboid-x-max c2))
+        (< (cuboid-y-max c1) (cuboid-y-max c2)))
+   (and (= (cuboid-x-min c1) (cuboid-x-min c2))
+        (= (cuboid-y-min c1) (cuboid-y-min c2))
+        (= (cuboid-z-min c1) (cuboid-z-min c2))
+        (= (cuboid-x-max c1) (cuboid-x-max c2))
+        (= (cuboid-y-max c1) (cuboid-y-max c2))
+        (< (cuboid-z-max c1) (cuboid-z-max c2)))))
+
+(define (cuboids-apply-reboot-step cuboids reboot-step)
+   (dbg "apply reboot-step: " (length cuboids))
+   ;; On peut avoir des cuboïdes qui se recouvrent quand on applique
+   ;; une reboot-step à "on" puisqu'on gère l'explosion des cuboïdes
+   ;; indépendamment les uns des autres.
+   (cond
+    ((cuboid-on? reboot-step)
+     (cons reboot-step cuboids))
+    ((and (null? cuboids) (not (cuboid-on? reboot-step)))
+     '())
+    (else
+     (append-map (cute cuboid-split-to-apply <> reboot-step)
+                 cuboids))))
+
+(define (cuboids-apply-all-reboot-steps cuboids reboot-steps)
+  (cond
+   ((null? reboot-steps)
+    cuboids)
+   (else
+    ;(dbg "cuboids=" cuboids)
+    (cuboids-apply-all-reboot-steps (cuboids-apply-reboot-step cuboids (car reboot-steps))
+                                    (cdr reboot-steps)))))
+
+(define (from-to a b)
+  (if (<= a b)
+      (iota (1+ (- b a)) a)
+      '()))
+
+(define (cuboid->cubes cuboid)
+  ;; sort une list de cubes (chaque cube est une liste de coordonnées (list x y z)
+  (let* ((r-x (from-to (cuboid-x-min cuboid) (cuboid-x-max cuboid)))
+         (r-y (from-to (cuboid-y-min cuboid) (cuboid-y-max cuboid)))
+         (r-z (from-to (cuboid-z-min cuboid) (cuboid-z-max cuboid))))
+    (combine* r-x r-y r-z)))
+
+(define (add-cuboid-to-hash-cubes! cubes cuboid)
+   (let* ((new-cubes (cuboid->cubes cuboid)))
+     (for-each
+      (lambda (cube) (hash-table-set! cubes cube #t))
+      new-cubes)))
+
+(define (cuboids-to-hash-cubes cuboids)
+   (let* ((cubes (make-hash-table)))
+     (for-each
+      (lambda (cuboid) (add-cuboid-to-hash-cubes! cubes cuboid))
+      cuboids)
+     cubes))
+
+(define (cuboid-size cuboid)
+    (let* ((x-size (max 0 (1+ (- (cuboid-x-max cuboid) (cuboid-x-min cuboid)))))
+           (y-size (max 0 (1+ (- (cuboid-y-max cuboid) (cuboid-y-min cuboid)))))
+           (z-size (max 0 (1+ (- (cuboid-z-max cuboid) (cuboid-z-min cuboid))))))
+      (* x-size y-size z-size)))
+
+(define (cuboid-intersect c1 c2)
+    (let* ((x-min (max (cuboid-x-min c1) (cuboid-x-min c2)))
+           (y-min (max (cuboid-y-min c1) (cuboid-y-min c2)))
+           (z-min (max (cuboid-z-min c1) (cuboid-z-min c2)))
+           (x-max (min (cuboid-x-max c1) (cuboid-x-max c2)))
+           (y-max (min (cuboid-y-max c1) (cuboid-y-max c2)))
+           (z-max (min (cuboid-z-max c1) (cuboid-z-max c2))))
+      (make-cuboid x-min x-max y-min y-max z-min z-max (cuboid-on? c2))))
+
+(define (cuboids-size cuboids)
+  (fold
+    (lambda (cuboid acc)
+      ;(dbg "S,C=" (list (cuboid-size cuboid) cuboid))
+      (+ acc (cuboid-size cuboid)))
+    0
+    cuboids))
+
+(define (cuboids-size-bis cuboids)
+    (hash-table-size (cuboids-to-hash-cubes cuboids)))
+
+(define (delete-dups lst)
+    (let delete-dups-rec ((lst (cdr lst)) (cur (car lst)) (result '()))
+      (cond
+       ((null? lst) (cons cur result))
+       ((equal? (car lst) cur)
+        (delete-dups-rec (cdr lst) cur result))
+       (else
+        (delete-dups-rec (cdr lst) (car lst) (cons cur result))))))
+
+(define (sum-intersections-size cuboids-combinaisons)
+    (let sum-intersections-rec ((rest cuboids-combinaisons) (size 0))
+      (cond
+       ((null? rest) size)
+       (else
+         (let* ((cur (car rest))
+                (rest (cdr rest)))
+           (cond
+            ((equal? (first cur) (second cur)) (sum-intersections-rec rest size))
+            (else (sum-intersections-rec
+                   rest
+                   (+ size (cuboids-size (cuboid-intersect (first cur) (second cur))))))))))))
+
 (use-modules (statprof))
 (define-public (main args)
    (let*-values (
-                 ((result1) "UNIMP")
-                 ((result2) "UNIMP"))
+                 ((steps) (parse-all-reboot-steps (current-input-port)))
+                 ((steps-restricted) (map (cute cuboid-intersect cuboid-50 <>) steps))
+                 ((cuboids-restricted) (cuboids-apply-all-reboot-steps '() steps-restricted))
+                 ;(_ (statprof (lambda () (cuboids-apply-all-reboot-steps '() steps-restricted))))
+                 ((size) (cuboids-size cuboids-restricted))
+                 ((size-bis) (cuboids-size-bis cuboids-restricted))
+                 ((result1) size-bis)
+                 ((cuboids) (cuboids-apply-all-reboot-steps '() steps))
+                 (_ (dbg "cuboids-length=" (length cuboids)))
+                 ((cuboids) (delete-dups (sort cuboids cuboid<?)))
+                 ((size) (cuboids-size cuboids))
+                 (_ (dbg "cuboids-length=" (length cuboids)))
+                 ((cuboids-combinaisons) (combine* cuboids cuboids))
+                 (_ (dbg "combination length" (length cuboids-combinaisons)))
+                 ((intersect-size) (sum-intersections-size cuboids-combinaisons))
+                 ((result2) (- size intersect-size)))
       (format #t "result1: ~a\n" result1)
       (format #t "result2: ~a\n" result2)))
