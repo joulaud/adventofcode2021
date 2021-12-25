@@ -326,7 +326,42 @@
             ((equal? (first cur) (second cur)) (sum-intersections-rec rest size))
             (else (sum-intersections-rec
                    rest
-                   (+ size (cuboids-size (cuboid-intersect (first cur) (second cur))))))))))))
+                   (+ size (cuboid-size (cuboid-intersect (first cur) (second cur))))))))))))
+
+(define (cuboid-full-split c1 c2)
+        (let*-values (((x-both x-c1 x-c2) (axis-intersect (cuboid-x-min c1)
+                                                          (cuboid-x-max c1)
+                                                          (cuboid-x-min c2)
+                                                          (cuboid-x-max c2)))
+                      ((y-both y-c1 y-c2) (axis-intersect (cuboid-y-min c1)
+                                                          (cuboid-y-max c1)
+                                                          (cuboid-y-min c2)
+                                                          (cuboid-y-max c2)))
+                      ((z-both z-c1 z-c2) (axis-intersect (cuboid-z-min c1)
+                                                          (cuboid-z-max c1)
+                                                          (cuboid-z-min c2)
+                                                          (cuboid-z-max c2))))
+           (let* ((ranges  (append
+                            (ranges-only x-both y-both z-both x-c1 y-c1 z-c1)
+                            (ranges-only x-both y-both z-both x-c2 y-c2 z-c2)
+                            (combine* x-both y-both z-both)))
+                  (cuboids (ranges->cuboids ranges)))
+              cuboids)))
+
+(define (normalize-cuboids cuboids)
+    (dbg "Ncuboids-length=" (length cuboids))
+    (let* (
+           (cub-zip (zip cuboids (cdr cuboids)))
+           (new-cuboids (fold
+                          (lambda (x acc)
+                               (append (cuboid-full-split (first x) (second x)) acc))
+                          '()
+                          cub-zip))
+           (new-cuboids (delete-dups (sort new-cuboids cuboid<?))))
+      (cond
+       ((equal? cuboids new-cuboids) cuboids)
+       (else (normalize-cuboids new-cuboids)))))
+
 
 (use-modules (statprof))
 (define-public (main args)
@@ -340,12 +375,10 @@
                  ((result1) size-bis)
                  ((cuboids) (cuboids-apply-all-reboot-steps '() steps))
                  (_ (dbg "cuboids-length=" (length cuboids)))
-                 ((cuboids) (delete-dups (sort cuboids cuboid<?)))
-                 ((size) (cuboids-size cuboids))
+                 ((cuboids) (normalize-cuboids cuboids))
                  (_ (dbg "cuboids-length=" (length cuboids)))
-                 ((cuboids-combinaisons) (combine* cuboids cuboids))
-                 (_ (dbg "combination length" (length cuboids-combinaisons)))
-                 ((intersect-size) (sum-intersections-size cuboids-combinaisons))
-                 ((result2) (- size intersect-size)))
+                 ((cuboids) (delete-dups (sort cuboids cuboid<?)))
+                 (_ (dbg "cuboids-length=" (length cuboids)))
+                 ((result2) (cuboids-size cuboids)))
       (format #t "result1: ~a\n" result1)
       (format #t "result2: ~a\n" result2)))
