@@ -104,3 +104,41 @@ on x=10..10,y=10..10,z=10..10")
  (test-equal '((20 . 21) (25 . 26)) c2))
 
 (test-end "axis-intersect")
+
+
+(test-begin "restrictions")
+(import-private cuboid-restrict-x)
+(import-private cuboid-restrict-y)
+(test-equal
+ (make-cuboid 12 14 20 22 42 48  #t)
+ (cuboid-restrict-y
+  (cuboid-restrict-x (make-cuboid 10 15 20 25 42 48  #t) 12 14)
+  16 22))
+(test-end "restrictions")
+
+(test-begin "cuboid-size")
+(import-private cuboid-size)
+(import-private cuboids-size)
+(import-private cuboids-size-bis)
+(test-equal 1
+            (cuboid-size (make-cuboid 1 1 4 4 6 6 #t)))
+(test-equal 1000
+            (cuboid-size (make-cuboid 1 10 31 40 51 60 #t)))
+(test-equal 1
+            (cuboid-size (make-cuboid -1 -1 -4 -4 -6 -6 #t)))
+
+(test-equal (cuboids-size-bis (list (make-cuboid 1 1 4 4 6 6 #t)))
+            (cuboid-size (make-cuboid 1 1 4 4 6 6 #t)))
+(test-equal (cuboids-size-bis (list (make-cuboid 1 10 31 40 51 60 #t)))
+            (cuboid-size (make-cuboid 1 10 31 40 51 60 #t)))
+
+(test-equal 1001
+            (cuboids-size (list (make-cuboid 1 10 31 40 51 60 #t)
+                                (make-cuboid -1 -1 -4 -4 -6 -6 #t))))
+
+(test-equal 1000
+            (cuboids-size-bis (list (make-cuboid 1 10 31 40 51 60 #t)
+                                    (make-cuboid 1 1 34 34 56 56 #t))))
+
+(test-begin "cuboid-size")
+

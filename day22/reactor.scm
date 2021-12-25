@@ -233,7 +233,6 @@
         (< (cuboid-z-max c1) (cuboid-z-max c2)))))
 
 (define (cuboids-apply-reboot-step cuboids reboot-step)
-   (dbg "apply reboot-step: " (length cuboids))
    ;; On peut avoir des cuboïdes qui se recouvrent quand on applique
    ;; une reboot-step à "on" puisqu'on gère l'explosion des cuboïdes
    ;; indépendamment les uns des autres.
@@ -283,8 +282,9 @@
 (define (cuboid-size cuboid)
     (let* ((x-size (max 0 (1+ (- (cuboid-x-max cuboid) (cuboid-x-min cuboid)))))
            (y-size (max 0 (1+ (- (cuboid-y-max cuboid) (cuboid-y-min cuboid)))))
-           (z-size (max 0 (1+ (- (cuboid-z-max cuboid) (cuboid-z-min cuboid))))))
-      (* x-size y-size z-size)))
+           (z-size (max 0 (1+ (- (cuboid-z-max cuboid) (cuboid-z-min cuboid)))))
+           (cuboid-size (* x-size y-size z-size)))
+       cuboid-size))
 
 (define (cuboid-intersect c1 c2)
     (let* ((x-min (max (cuboid-x-min c1) (cuboid-x-min c2)))
@@ -307,13 +307,17 @@
     (hash-table-size (cuboids-to-hash-cubes cuboids)))
 
 (define (delete-dups lst)
+ (cond
+  ((<= (length lst) 1)
+   lst)
+  (else
     (let delete-dups-rec ((lst (cdr lst)) (cur (car lst)) (result '()))
       (cond
        ((null? lst) (cons cur result))
        ((equal? (car lst) cur)
         (delete-dups-rec (cdr lst) cur result))
        (else
-        (delete-dups-rec (cdr lst) (car lst) (cons cur result))))))
+        (delete-dups-rec (cdr lst) (car lst) (cons cur result))))))))
 
 (define (sum-intersections-size cuboids-combinaisons)
     (let sum-intersections-rec ((rest cuboids-combinaisons) (size 0))
@@ -349,7 +353,11 @@
               cuboids)))
 
 (define (normalize-cuboids cuboids)
-    (dbg "Ncuboids-length=" (length cuboids))
+  (dbg "Ncuboids-length=" (length cuboids))
+  (cond
+   ((<= (length cuboids) 1)
+    cuboids)
+   (else
     (let* (
            (cub-zip (zip cuboids (cdr cuboids)))
            (new-cuboids (fold
@@ -360,8 +368,178 @@
            (new-cuboids (delete-dups (sort new-cuboids cuboid<?))))
       (cond
        ((equal? cuboids new-cuboids) cuboids)
-       (else (normalize-cuboids new-cuboids)))))
+       (else (normalize-cuboids new-cuboids)))))))
 
+(define (cuboid->range-tree cuboid)
+    (let* ((x-range (cons (cuboid-x-min cuboid) (cuboid-x-max cuboid)))
+           (y-range (cons (cuboid-y-min cuboid) (cuboid-y-max cuboid)))
+           (z-range (cons (cuboid-z-min cuboid) (cuboid-z-max cuboid))))
+     (list
+      (cons x-range
+            (list (cons y-range
+                        (list z-range)))))))
+
+(define (delete-adjacent-duplicates lst)
+ (cond
+  ((null? lst)
+   lst)
+  (else
+   (reverse
+          (fold
+            (lambda (elem res)
+              (if (equal? elem (first res))
+                  res
+                  (cons elem res)))
+            (list (first lst))
+            lst)))))
+
+
+(define (cuboids->all-x cuboids)
+    (let loop ((cuboids cuboids) (result '()))
+       (cond
+        ((null? cuboids)
+         (delete-adjacent-duplicates (sort result <)))
+        (else (let* ((cur (car cuboids))
+                     (rest (cdr cuboids))
+                     (x-min (cuboid-x-min cur))
+                     (x-max (cuboid-x-max cur))
+                     (result (cons x-min (cons x-max result))))
+                 (loop rest result))))))
+
+(define (cuboids->all-y cuboids)
+    (let loop ((cuboids cuboids) (result '()))
+       (cond
+        ((null? cuboids)
+         (delete-adjacent-duplicates (sort result <)))
+        (else (let* ((cur (car cuboids))
+                     (rest (cdr cuboids))
+                     (y-min (cuboid-y-min cur))
+                     (y-max (cuboid-y-max cur))
+                     (result (cons y-min (cons y-max result))))
+                 (loop rest result))))))
+
+(define (cuboids->all-z cuboids)
+    (let loop ((cuboids cuboids) (result '()))
+       (cond
+        ((null? cuboids)
+         (delete-adjacent-duplicates (sort result <)))
+        (else (let* ((cur (car cuboids))
+                     (rest (cdr cuboids))
+                     (z-min (cuboid-z-min cur))
+                     (z-max (cuboid-z-max cur))
+                     (result (cons z-min (cons z-max result))))
+                 (loop rest result))))))
+
+(define (cuboid-restrict-x c min-x max-x)
+ (let* ((c (set-cuboid-x-min c (max (cuboid-x-min c) min-x)))
+        (c (set-cuboid-x-max c (min (cuboid-x-max c) max-x))))
+   c))
+
+(define (cuboid-restrict-y c min-y max-y)
+ (let* ((c (set-cuboid-y-min c (max (cuboid-y-min c) min-y)))
+        (c (set-cuboid-y-max c (min (cuboid-y-max c) max-y))))
+   c))
+
+(define (cuboid-restrict-z c min-z max-z)
+ (let* ((c (set-cuboid-z-min c (max (cuboid-z-min c) min-z)))
+        (c (set-cuboid-z-max c (min (cuboid-z-max c) max-z))))
+    c))
+
+(define (cuboids-restricted-to-x-range cuboids min-x max-x)
+    (filter
+      cuboid-not-empty?
+      (map
+        (cut cuboid-restrict-x <> min-x max-x)
+        cuboids)))
+
+(define (cuboids-restricted-to-y-range cuboids min-y max-y)
+    (filter
+      cuboid-not-empty?
+      (map
+        (cut cuboid-restrict-y <> min-y max-y)
+        cuboids)))
+
+(define (cuboids-restricted-to-z-range cuboids min-z max-z)
+    (filter
+      cuboid-not-empty?
+      (map
+        (cut cuboid-restrict-z <> min-z max-z)
+        cuboids)))
+
+(define (all-subintervals lst)
+ (cond
+  ((null? lst) lst)
+  (else (let* ((v1 (first lst))
+               (mins (map 1+ lst))
+               (mins (cons v1 (cdr mins))))
+          (zip mins (cdr lst))))))
+
+(define (cuboids-normalise-by-axis axis f-all-n f-restrict f-next-step)
+  (lambda (cuboids)
+    (let*  ((all-n (f-all-n cuboids))
+            (n-ranges (all-subintervals all-n))
+            (_ (dbg "rng:" (list axis n-ranges)))
+            (cuboids (map
+                          (lambda (x)
+                             (let* ((n-min (first x))
+                                    (n-max (second x))
+                                    (this-cuboids (f-restrict cuboids n-min n-max))
+                                    (this-cuboids (delete-duplicates (f-next-step this-cuboids))))
+                                 this-cuboids))
+                          n-ranges)))
+        (concatenate cuboids))))
+
+;;(define (cuboids-normalise-ter cuboids)
+;;    (let*  ((all-x (cuboids->all-x cuboids))
+;;            (all-y (cuboids->all-y cuboids))
+;;            (all-y (cuboids->all-y cuboids)))))
+
+(define cuboids-normalise-z-range
+  (cuboids-normalise-by-axis 'z cuboids->all-z cuboids-restricted-to-z-range identity))
+
+(define cuboids-normalise-y-range
+  (cuboids-normalise-by-axis 'y cuboids->all-y cuboids-restricted-to-y-range cuboids-normalise-z-range))
+
+(define cuboids-normalise-x-range
+  (cuboids-normalise-by-axis 'x cuboids->all-x cuboids-restricted-to-x-range cuboids-normalise-y-range))
+
+(define (old-cuboids-normalise-x-range cuboids)
+    (let* ((all-x (cuboids->all-x cuboids))
+           (x-ranges (all-subintervals all-x))
+           (cuboids (map
+                         (lambda (x)
+                            (let* ((x-min (first x))
+                                   (x-max (second x))
+                                   (this-cuboids (cuboids-restricted-to-x-range cuboids x-min x-max))
+                                   (this-cuboids (cuboids-normalise-y-range this-cuboids)))
+                                this-cuboids))
+                         x-ranges)))
+        (concatenate cuboids)))
+
+(define (old-cuboids-normalise-y-range cuboids)
+    (let* ((all-y (cuboids->all-y cuboids))
+           (y-ranges (all-subintervals all-y))
+           (cuboids (map
+                         (lambda (x)
+                            (let* ((y-min (first x))
+                                   (y-max (second x))
+                                   (this-cuboids (cuboids-restricted-to-y-range cuboids y-min y-max))
+                                   (this-cuboids (cuboids-normalise-z-range this-cuboids)))
+                                this-cuboids))
+                         y-ranges)))
+        (concatenate cuboids)))
+
+(define (old-cuboids-normalise-z-range cuboids)
+    (let* ((all-z (cuboids->all-z cuboids))
+           (z-ranges (all-subintervals all-z))
+           (cuboids (map
+                         (lambda (x)
+                            (let* ((z-min (first x))
+                                   (z-max (second x))
+                                   (this-cuboids (cuboids-restricted-to-z-range cuboids z-min z-max)))
+                                this-cuboids))
+                         z-ranges)))
+        (concatenate cuboids)))
 
 (use-modules (statprof))
 (define-public (main args)
@@ -369,15 +547,15 @@
                  ((steps) (parse-all-reboot-steps (current-input-port)))
                  ((steps-restricted) (map (cute cuboid-intersect cuboid-50 <>) steps))
                  ((cuboids-restricted) (cuboids-apply-all-reboot-steps '() steps-restricted))
-                 ;(_ (statprof (lambda () (cuboids-apply-all-reboot-steps '() steps-restricted))))
+                 ((cuboids-restricted) (cuboids-normalise-x-range cuboids-restricted))
                  ((size) (cuboids-size cuboids-restricted))
                  ((size-bis) (cuboids-size-bis cuboids-restricted))
                  ((result1) size-bis)
                  ((cuboids) (cuboids-apply-all-reboot-steps '() steps))
                  (_ (dbg "cuboids-length=" (length cuboids)))
-                 ((cuboids) (normalize-cuboids cuboids))
-                 (_ (dbg "cuboids-length=" (length cuboids)))
-                 ((cuboids) (delete-dups (sort cuboids cuboid<?)))
+                 (_ (dbg "all-x=" (cuboids->all-x cuboids)))
+                 ((cuboids) (cuboids-normalise-x-range cuboids))
+                 (_ (dbg "all-x=" (cuboids->all-x cuboids)))
                  (_ (dbg "cuboids-length=" (length cuboids)))
                  ((result2) (cuboids-size cuboids)))
       (format #t "result1: ~a\n" result1)
