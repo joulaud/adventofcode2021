@@ -102,10 +102,12 @@
            (< (range-max a) (range-max b)))))
 
 (define (cuboid->range cuboid)
-   (let* ((subrange-z (make-range (cuboid-z-min cuboid) (cuboid-z-max cuboid) #t))
-          (subrange-y (make-range (cuboid-y-min cuboid) (cuboid-y-max cuboid) (list subrange-z)))
-          (range-x (make-range (cuboid-x-min cuboid) (cuboid-x-max cuboid) (list subrange-y))))
-    range-x))
+   ;; On ajoute "1" à la valeur max car si dans un cuboid on est dans une logique inclusives,
+   ;; ici on travaille avec des intervalles fermés à gauches et ouverts à droite.
+   (let* ((subrange-z (make-range (cuboid-z-min cuboid) (1+ (cuboid-z-max cuboid)) #t))
+          (subrange-y (make-range (cuboid-y-min cuboid) (1+ (cuboid-y-max cuboid)) (list subrange-z)))
+          (range-x    (make-range (cuboid-x-min cuboid) (1+ (cuboid-x-max cuboid)) (list subrange-y))))
+     range-x))
 
 (define (parse-reboot-step line)
   (match-let* (((on? ranges) (string-split line #\space))
@@ -543,11 +545,6 @@
 (define cuboids-normalise-x-range
   (cuboids-normalise-by-axis 'x cuboids->all-x cuboids-restricted-to-x-range cuboids-normalise-y-range))
 
-(define (normalize-sub-ranges range)
-   (cond
-    ((eq? #t (range-subs range)) range)
-    (else (set-range-subs range (normalize-range-list (range-subs range))))))
-
 (define (range-size range)
     (let* ((vmin (range-min range))
            (vmax (range-max range))
@@ -570,11 +567,17 @@
      ((and (list? x) (list? y)) (append x y))
      (else (error (format #f "'~a' and '~a' are not of the same type " x y)))))
 
-(define (normalize-range-list range-list)
+(define (normalize-sub-ranges range t)
+   (cond
+    ((eq? #t (range-subs range)) range)
+    (else (set-range-subs range (normalize-range-list (range-subs range) (1+ t))))))
+
+(define (normalize-range-list range-list t)
    (let normalize-rec ((lst (sort range-list range<?)) (result '()))
+       (dbg "N:" (list t (length lst) (length result)))
        (cond
         ((null? lst) (reverse (map
-                               normalize-sub-ranges
+                               (cut normalize-sub-ranges <> t)
                                (filter (lambda (rg)
                                           (not (range-empty? rg)))
                                       result))))
@@ -583,6 +586,7 @@
                      (cur (car lst)) (cur-min (range-min cur)) (cur-max (range-max cur)) (cur-sub (range-subs cur)))
                 (cond
                  ((< cur-min prec-min) ;; on n'est pas dans le bon ordre, on remet les deux dans lst
+                  (dbg "WAT!" (format #f "(~a . ~a) (~a . ~a)" prec-min prec-max cur-min cur-max))
                   (normalize-rec (cons*
                                   cur
                                   prec
@@ -593,21 +597,30 @@
                  ((<= prec-min prec-max cur-min cur-max) ; cur et prec sont disjoints
                   (normalize-rec (cdr lst) (cons cur result)))
                  ((<= prec-min cur-min prec-max cur-max) ; cur et prec se chevauchent
-                  (normalize-rec (cdr lst)
-                                 (cons*
-                                   (make-range prec-max cur-max cur-sub)
-                                   (make-range cur-min prec-max (sub-range-append prec-sub cur-sub))
-                                   (make-range prec-min cur-min prec-sub)
-                                   (cdr result))))
+                  (let* ((res (cdr result))
+                         (res (if (< prec-min cur-min)
+                                  (cons (make-range prec-min cur-min prec-sub) res)
+                                  res))
+                         (res (if (< cur-min prec-max)
+                                  (cons (make-range cur-min prec-max (sub-range-append prec-sub cur-sub)) res)
+                                  res))
+                         (res (if (< prec-max cur-max)
+                                  (cons (make-range prec-max cur-max cur-sub) res)
+                                  res)))
+                   (normalize-rec (cdr lst) res)))
                  ((<= prec-min cur-min cur-max prec-max) ; cur est inclus dans prec
-                  (normalize-rec (cdr lst)
-                                 (cons*
-                                   (make-range cur-max prec-max prec-sub)
-                                   (make-range cur-min cur-max (sub-range-append prec-sub cur-sub))
-                                   (make-range prec-min cur-min prec-sub)
-                                   (cdr result))))))))))
-
-
+                  (let* (
+                         (res (cdr result))
+                         (res (if (< prec-min cur-min)
+                                  (cons (make-range prec-min cur-min prec-sub) res)
+                                  res))
+                         (res (if (< cur-min cur-max)
+                                  (cons (make-range cur-min cur-max (sub-range-append prec-sub cur-sub)) res)
+                                  res))
+                         (res (if (< cur-max prec-max)
+                                  (cons (make-range cur-max prec-max prec-sub) res)
+                                  res)))
+                    (normalize-rec (cdr lst) res)))))))))
 
 (use-modules (statprof))
 (define-public (main args)
@@ -623,11 +636,13 @@
                  ((result1) size-bis)
                  ((cuboids) (cuboids-apply-all-reboot-steps '() steps))
                  (_ (dbg "L=" (length cuboids)))
-                 (_ (statprof (lambda () (cuboids-normalise-ter cuboids))))
-                 (_ (exit))
-                 ((cuboids) (cuboids-normalise-ter cuboids))
-                 (_ (dbg "L=" (length cuboids)))
-                 ((result2) (cuboids-size cuboids)))
+                 ((ranges) (map cuboid->range cuboids))
+                 (_ (dbg "R=" ranges))
+                 (_ (dbg "L=" (length ranges)))
+                 ((ranges) (normalize-range-list ranges 0))
+                 (_ (dbg "L=" (length ranges)))
+                 ((size)   (fold + 0 (map range-size ranges)))
+                 ((result2) size))
       (format #t "result1: ~a\n" result1)
       (format #t "result2: ~a\n" result2)))
 
