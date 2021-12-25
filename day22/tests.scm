@@ -140,5 +140,18 @@ on x=10..10,y=10..10,z=10..10")
             (cuboids-size-bis (list (make-cuboid 1 10 31 40 51 60 #t)
                                     (make-cuboid 1 1 34 34 56 56 #t))))
 
-(test-begin "cuboid-size")
+(test-end "cuboid-size")
 
+
+
+(test-begin "normalize-range-list")
+(import-private normalize-range-list)
+(test-equal '((0 . 1) (1 . 2)
+              (3 . 4) (4 . 5) (5 . 6)
+              (10 . 11) (11 . 14) (14 . 15)
+              (20 . 21) (21 . 24) (24 . 25) (25 . 30))
+            (normalize-range-list '((0 . 1) (1 . 2)
+                                    (3 . 5) (4 . 6)
+                                    (10 . 15) (11 . 14)
+                                    (20 . 25) (20 . 30) (21 . 24))))
+(test-end "normalize-range-list")

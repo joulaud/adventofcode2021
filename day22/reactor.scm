@@ -560,6 +560,42 @@
                          z-ranges)))
         (concatenate cuboids)))
     
+
+(define (normalize-range-list range-list)
+   (let normalize-rec ((lst range-list) (result '()))
+       (cond
+        ((null? lst) (reverse (filter (lambda (p)
+                                         (not (= (car p) (cdr p))))
+                                      result)))
+        ((null? result) (normalize-rec (cdr lst) (cons (car lst) result)))
+        (else (let* ((prec (car result)) (prec-min (car prec)) (prec-max (cdr prec))
+                     (cur (car lst)) (cur-min (car cur)) (cur-max (cdr cur)))
+                (cond
+                 ((and (= prec-min cur-min) (= prec-max cur-max))
+                  (normalize-rec (cdr lst) result))
+                 ((<= prec-min prec-max cur-min cur-max)
+                  (normalize-rec (cdr lst) (cons cur result)))
+                 ((<= prec-min cur-min prec-max cur-max)
+                  (normalize-rec (cdr lst)
+                                 (cons*
+                                   (cons prec-max cur-max)
+                                   (cons cur-min prec-max)
+                                   (cons prec-min cur-min)
+                                   (cdr result))))
+                 ((<= prec-min cur-min cur-max prec-max)
+                  (normalize-rec (cdr lst)
+                                 (cons*
+                                   (cons cur-max prec-max)
+                                   (cons cur-min cur-max)
+                                   (cons prec-min cur-min)
+                                   (cdr result))))
+                 ((< cur-min prec-min)
+                  (normalize-rec (cons*
+                                  cur
+                                  prec
+                                  (cdr lst))
+                                 (cdr result)))))))))
+
 (use-modules (statprof))
 (define-public (main args)
    (let*-values (
