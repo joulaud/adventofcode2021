@@ -43,14 +43,15 @@
   (format #t "w=~a,x=~a,y=~a,z=~a\n" (reg-w registers) (reg-x registers) (reg-y registers) (reg-z registers)))
 
 (define-immutable-record-type <state>
-   (make-state-with-molecules regs input molecules)
+   (make-state-with-molecules regs input molecules counter)
    state?
    (regs state-regs set-state-regs)
    (input state-input set-state-input)
-   (molecules state-molecules! set-state-molecules!))
+   (molecules state-molecules! set-state-molecules!)
+   (counter state-counter set-state-counter))
 
-(define (make-state regs input)
-     (make-state-with-molecules regs input (make-hash-table)))
+(define (make-state regs input counter)
+     (make-state-with-molecules regs input (make-hash-table) counter))
 
 (define (get-reg-or-immediate registers val)
   (cond
@@ -78,14 +79,15 @@
             (cdr input)))))
 
 (define (inp args)
-   (lambda (regs input)
+   (lambda (regs input counter)
      (let*-values (((val input) (read-input input)))
         (make-state
          (set-reg regs (car args) val)
-         input))))
+         input
+         (1+ counter)))))
 
 (define (bin-op op args)
-   (lambda (regs input)
+   (lambda (regs input counter)
      (let* ((a (first args))
             (b (second args))
             (aval (get-reg-or-immediate regs a))
@@ -93,22 +95,28 @@
             (result (op aval bval)))
       (make-state
        (set-reg regs a result)
-       input))))
+       input
+       (1+ counter)))))
+
+(define (analysis-of-intermediate-programs state)
+   '(let))
+
 
 (define (run program input)
   (fold
     (lambda (op state)
       ;(print-registers (state-regs state))
-      (op (state-regs state) (state-input state)))
-    (make-state empty-registers input)
+      (op (state-regs state) (state-input state) (state-counter state)))
+    (make-state empty-registers input 0)
     program))
 
 (define (op-inp args)
-   (lambda (regs input)
+   (lambda (regs input counter)
      (let*-values (((val input) (read-input input)))
         (make-state
          (set-reg regs (car args) val)
-         input))))
+         input
+         (1+ counter)))))
 
 (define (op-mul a b)
       (cond
@@ -167,7 +175,7 @@
   (let* ((full-op (string-split line #\space))
          (op-name (car full-op))
          (op-args (cdr full-op))
-         (_ (dbg "ops=" (list op-name op-args)))
+         ;(_ (dbg "ops=" (list op-name op-args)))
          (op (cond
               ((string= op-name "inp") (op-inp op-args))
               ((string= op-name "add") (bin-op op-add op-args))
@@ -225,40 +233,48 @@
       (format #t "result2: ~a\n" result2)))
 
 
-;;(define program (parse-program (open-input-file "inputs/input")))
-;;(define res-sym (symbolic-analysis program))
-;;
-;;(define (depth x)
-;;  (cond
-;;    ((not (list? x)) 1)
-;;    ((null? x) 0)
-;;    (else
-;;      (1+ (max (depth (car x))
-;;              (depth (cdr x)))))))
-;;
-;;(define (op-depth x)
-;;  (cond
-;;    ((not (list? x)) 1) ; ATOM
-;;    ((null? x) 0) ; should never happen
-;;    (else
-;;     (let* ((op  (car x))
-;;            (args (cdr x))
-;;            (args-depth (apply max (map depth args))))
-;;      (1+ args-depth)))))
-;;
-;;(depth res-sym)
-;;(op-depth res-sym)
-;;(print-tree res-sym 0)
-;;(define (print-indent n)
-;;  (for-each
-;;   (lambda (_) (display " "))
-;;   (iota n)))
-;;
-;;(define (print-tree obj indent)
-;;  (cond
-;;   ((>= indent 20) (print-indent indent) (display "...\n"))
-;;   ((null? obj))
-;;   ((list? obj) (map (cut print-tree <> (1+ indent)) obj))
-;;   (else (print-indent indent) (display obj) (display "\n")))
-;;  #t)
-;;
+(define program (parse-program (open-input-file "inputs/input")))
+(define res-sym (symbolic-analysis program))
+
+(define (depth x)
+  (cond
+    ((not (list? x)) 1)
+    ((null? x) 0)
+    (else
+      (1+ (max (depth (car x))
+              (depth (cdr x)))))))
+(define (op-depth x)
+  (cond
+    ((not (list? x)) 1) ; ATOM
+    ((null? x) 0) ; should never happen
+    (else
+     (let* ((op  (car x))
+            (args (cdr x))
+            (args-depth (apply max (map depth args))))
+      (1+ args-depth)))))
+(define (print-indent n)
+  (for-each
+   (lambda (_) (display " "))
+   (iota n)))
+(define (print-tree obj indent max-depth)
+  (cond
+   ((>= indent max-depth) (print-indent indent) (display "...\n"))
+   ((null? obj))
+   ((list? obj)
+    (let* ((op (car obj))
+           (args (cdr obj)))
+     (print-indent indent) (display op) (display "\n")
+     (map (cut print-tree <> (1+ indent) max-depth) args)))
+   (else (print-indent indent) (display obj) (display "\n")))
+  #t)
+
+(depth res-sym)
+(op-depth res-sym)
+(print-tree res-sym 0 10)
+
+(define arg1
+    (cons 'op1 (list 'a 'b)))
+(cons 'op (list 'a arg1))
+(list 'op 'a arg1)
+(print-tree (list 'op arg1 arg1) 0 10)
+
