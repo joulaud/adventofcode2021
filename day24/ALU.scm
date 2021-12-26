@@ -258,6 +258,47 @@
           (ordered-bindings (delete-duplicates (zip ordered-symbols ordered-exprs))))
       ordered-bindings))
 
+(define-immutable-record-type <range>
+  (make-range expression borne-inf borne-sup)
+  range?
+  (expression range-expr set-range-expr)
+  (borne-inf range-min set-range-min)
+  (borne-sup range-max set-range-max))
+
+(define (range-analysis ordered-bindings)
+  ;; ORDERED-BINDINGS are in single assignement form
+  ;; all expr have only previous symbols or immediate values as arguments
+  (define (iexpr-sym? sym)
+      (string-index (symbol->string sym) #\-))
+  (define (get-range-for-val sym2ranges val)
+    (cond
+     ((number? val) (make-range val val val))
+     ((and (symbol? val) (expr-sym? val))
+      (hash-table-ref sym2ranges val))
+     ((symbol? val)
+      ;; bare symbols (from 'a to 'n) represent non-zero digits
+      (make-range val 1 9))
+     (else (error "'~a' is not a correct value to be in SSA expr"))))
+  (define (rg-mul r1 r2)
+     (let* ((r1-min (range-min r1) (r1-max (range-max r1)))
+            (r2-min (range-min r2) (r2-max (range-max r2)))
+            (n-min (* r1-min r2-min))
+            (n-max (* r1-max r2-max)))
+       (error "UNIMP")))
+  (let ((sym2ranges (make-hash-table)))
+    (let range-analysis-rec ((lst ordered-bindings)
+                             (result '()))
+         (cond
+          ((null? lst) (reverse ordered-bindings))
+          (else
+           (let* ((cur (car lst))
+                  (sym (car cur))
+                  (expr (cdr cur))
+                  (op (first expr))
+                  (a (second expr))
+                  (b (third expr)))))))))
+
+
 (define (program->scheme-proc program)
   (let*  ((ordered-bindings (program->ordered-bindings program))
           (equal-for-MONAD (lambda (a b) (if (= a b) 1 0)))
