@@ -38,15 +38,19 @@
    (y reg-y set-reg-y)
    (z reg-z set-reg-z))
 
-(define empty-registers (make-registers 0 0 0 0))
+(define empty-registers (make-registers 0 0 0 0));)
 (define (print-registers registers)
   (format #t "w=~a,x=~a,y=~a,z=~a\n" (reg-w registers) (reg-x registers) (reg-y registers) (reg-z registers)))
 
 (define-immutable-record-type <state>
-   (make-state regs input)
+   (make-state-with-molecules regs input molecules)
    state?
    (regs state-regs set-state-regs)
-   (input state-input set-state-input))
+   (input state-input set-state-input)
+   (molecules state-molecules! set-state-molecules!))
+
+(define (make-state regs input)
+     (make-state-with-molecules regs input (make-hash-table)))
 
 (define (get-reg-or-immediate registers val)
   (cond
@@ -124,12 +128,14 @@
 
 (define (op-div a b)
       (cond
+       ((and (number? a) (= 0 a))     0)
        ((and (number? b) (= 1 b))     a)
        ((and (number? a) (number? b)) (quotient a b))
        (else                          (list 'DIV a b))))
 
 (define (op-mod a b)
       (cond
+       ((and (number? a) (= 0 a))     0)
        ((and (number? b) (= 1 b))     a)
        ((and (number? a) (number? b)) (remainder a b))
        (else                          (list 'MOD a b))))
@@ -219,33 +225,40 @@
       (format #t "result2: ~a\n" result2)))
 
 
-(define program (parse-program (open-input-file "inputs/input")))
-(define res-sym (symbolic-analysis program))
-
-(define (depth x)
-  (cond
-    ((not (list? x)) 1)
-    ((null? x) 0)
-    (else
-      (1+ (max (depth (car x))
-              (depth (cdr x)))))))
-
-(cadr res-sym)
-(append (cdr $8) (cdr $9) $10)
-
-(print-tree res-sym 0)
-(define (print-indent n)
-  (for-each
-   (lambda (_) (display " "))
-   (iota n)))
-
-(define (print-tree obj indent)
-  (cond
-   ((>= indent 40) (print-indent indent) (display "...\n"))
-   ((null? obj))
-   ((list? obj) (map (cut print-tree <> (1+ indent)) obj))
-   (else (print-indent indent) (display obj) (display "\n")))
-  #t)
-
-
-
+;;(define program (parse-program (open-input-file "inputs/input")))
+;;(define res-sym (symbolic-analysis program))
+;;
+;;(define (depth x)
+;;  (cond
+;;    ((not (list? x)) 1)
+;;    ((null? x) 0)
+;;    (else
+;;      (1+ (max (depth (car x))
+;;              (depth (cdr x)))))))
+;;
+;;(define (op-depth x)
+;;  (cond
+;;    ((not (list? x)) 1) ; ATOM
+;;    ((null? x) 0) ; should never happen
+;;    (else
+;;     (let* ((op  (car x))
+;;            (args (cdr x))
+;;            (args-depth (apply max (map depth args))))
+;;      (1+ args-depth)))))
+;;
+;;(depth res-sym)
+;;(op-depth res-sym)
+;;(print-tree res-sym 0)
+;;(define (print-indent n)
+;;  (for-each
+;;   (lambda (_) (display " "))
+;;   (iota n)))
+;;
+;;(define (print-tree obj indent)
+;;  (cond
+;;   ((>= indent 20) (print-indent indent) (display "...\n"))
+;;   ((null? obj))
+;;   ((list? obj) (map (cut print-tree <> (1+ indent)) obj))
+;;   (else (print-indent indent) (display obj) (display "\n")))
+;;  #t)
+;;
