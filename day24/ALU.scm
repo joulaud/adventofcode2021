@@ -247,8 +247,7 @@
                 rest)))
      (append rest syms)))
 
-(define (program->scheme-proc program)
-   (display "\nprogram->scheme-proc\n")
+(define (program->ordered-bindings program)
    (let* ((end-state (symbolic-analysis program))
           (z         (reg-z (state-regs end-state)))
           (ordered-symbols (resolve-state-symbol end-state z))
@@ -256,7 +255,11 @@
                      (map
                        (cute hash-table-ref (state-sym2exp! end-state) <>)
                        ordered-symbols))
-          (ordered-bindings (delete-duplicates (zip ordered-symbols ordered-exprs)))
+          (ordered-bindings (delete-duplicates (zip ordered-symbols ordered-exprs))))
+      ordered-bindings))
+
+(define (program->scheme-proc program)
+  (let*  ((ordered-bindings (program->ordered-bindings program))
           (equal-for-MONAD (lambda (a b) (if (= a b) 1 0)))
           (scheme-expression
             `(lambda (a b c d e f g h i j k l m n)
