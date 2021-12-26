@@ -256,7 +256,7 @@
                        (cute hash-table-ref (state-sym2exp! end-state) <>)
                        ordered-symbols))
           (ordered-bindings (delete-duplicates (zip ordered-symbols ordered-exprs))))
-      ordered-bindings))
+      (values ordered-bindings z)))
 
 (define-immutable-record-type <range>
   (make-range expression borne-inf borne-sup)
@@ -268,7 +268,7 @@
 (define (range-analysis ordered-bindings)
   ;; ORDERED-BINDINGS are in single assignement form
   ;; all expr have only previous symbols or immediate values as arguments
-  (define (iexpr-sym? sym)
+  (define (expr-sym? sym)
       (string-index (symbol->string sym) #\-))
   (define (get-range-for-val sym2ranges val)
     (cond
@@ -280,8 +280,8 @@
       (make-range val 1 9))
      (else (error "'~a' is not a correct value to be in SSA expr"))))
   (define (rg-mul r1 r2)
-     (let* ((r1-min (range-min r1) (r1-max (range-max r1)))
-            (r2-min (range-min r2) (r2-max (range-max r2)))
+     (let* ((r1-min (range-min r1)) (r1-max (range-max r1))
+            (r2-min (range-min r2)) (r2-max (range-max r2))
             (n-min (* r1-min r2-min))
             (n-max (* r1-max r2-max)))
        (error "UNIMP")))
@@ -296,21 +296,22 @@
                   (expr (cdr cur))
                   (op (first expr))
                   (a (second expr))
-                  (b (third expr)))))))))
+                  (b (third expr)))
+             (error "UNIMP")))))))
 
 
 (define (program->scheme-proc program)
-  (let*  ((ordered-bindings (program->ordered-bindings program))
-          (equal-for-MONAD (lambda (a b) (if (= a b) 1 0)))
-          (scheme-expression
-            `(lambda (a b c d e f g h i j k l m n)
-               (let ((ADD ,+)
-                     (MUL ,*)
-                     (DIV ,quotient)
-                     (MOD ,remainder)
-                     (EQL ,equal-for-MONAD))
-                  (let* ,ordered-bindings
-                    ,z)))))
+  (let*-values  (((ordered-bindings z) (program->ordered-bindings program))
+                 ((equal-for-MONAD) (lambda (a b) (if (= a b) 1 0)))
+                 ((scheme-expression)
+                  `(lambda (a b c d e f g h i j k l m n)
+                     (let ((ADD ,+)
+                           (MUL ,*)
+                           (DIV ,quotient)
+                           (MOD ,remainder)
+                           (EQL ,equal-for-MONAD))
+                        (let* ,ordered-bindings
+                          ,z)))))
       (dbg "scheme-expr=" scheme-expression)
       (eval scheme-expression (interaction-environment))))
 
@@ -494,8 +495,8 @@
 
 (define-public (main args)
    (let*-values (
-                 ((result1-precompiled) (highest-fourteen-digit-validated compiled-program (1- (expt 10 14))))
-                 (_ (dbg "RESUlT?=" result1-precompiled))
+                 ;((result1-precompiled) (highest-fourteen-digit-validated compiled-program (1- (expt 10 14))))
+                 ;(_ (dbg "RESUlT?=" result1-precompiled))
                  ((program) (parse-program (current-input-port)))
                  ;(_ (statprof (lambda () (highest-fourtenn-digit-validated program (+ 5000000 (expt 10 13))))))
                  ((prog-sym) (symbolic-analysis program))
