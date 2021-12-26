@@ -99,20 +99,76 @@
     (make-state empty-registers input)
     program))
 
+(define (op-inp args)
+   (lambda (regs input)
+     (let*-values (((val input) (read-input input)))
+        (make-state
+         (set-reg regs (car args) val)
+         input))))
+
+(define (op-mul a b)
+      (cond
+       ((and (number? a) (= 0 a))     0)
+       ((and (number? b) (= 0 b))     0)
+       ((and (number? a) (= 1 a))     b)
+       ((and (number? b) (= 1 b))     a)
+       ((and (number? b) (number? a)) (* a b))
+       ((and (list? a) (symbol? (car a)) (eq? a 'MUL)
+             (list? b) (symbol? (car b)) (eq? b 'MUL))
+        (append '(MUL) (cdr a) (cdr b)))
+       ((and (list? a) (symbol? (car a)) (eq? a 'MUL))
+        (append '(MUL) (cdr a) b))
+       ((and (list? b) (symbol? (car b)) (eq? b 'MUL))
+        (append '(MUL) a (cdr b)))
+       (else                          (list 'MUL a b))))
+
+(define (op-div a b)
+      (cond
+       ((and (number? b) (= 1 b))     a)
+       ((and (number? a) (number? b)) (quotient a b))
+       (else                          (list 'DIV a b))))
+
+(define (op-mod a b)
+      (cond
+       ((and (number? b) (= 1 b))     a)
+       ((and (number? a) (number? b)) (remainder a b))
+       (else                          (list 'MOD a b))))
+
+(define (op-add a b)
+      (cond
+       ((and (number? a) (= 0 a))     b)
+       ((and (number? b) (= 0 b))     a)
+       ((and (number? a) (number? b)) (+ a b))
+       ((and (list? a) (symbol? (car a)) (eq? a 'ADD)
+             (list? b) (symbol? (car b)) (eq? b 'ADD))
+        (append '(ADD) (cdr a) (cdr b)))
+       ((and (list? a) (symbol? (car a)) (eq? a 'ADD))
+        (append '(ADD) (cdr a) b))
+       ((and (list? b) (symbol? (car b)) (eq? b 'ADD))
+        (append '(ADD) a (cdr b)))
+       (else                          (list 'ADD a b))))
+
+(define (op-eql a b)
+     (cond
+      ((and (number? a) (number? b)) (if (= a b) 1 0))
+      ((and (number? a) (symbol? b)) (if (or (< a 1) (< 9 a)) 0
+                                         (list 'EQL a b)))
+      ((and (number? b) (symbol? a)) (if (or (< b 1) (< 9 b)) 0
+                                         (list 'EQL a b)))
+      (else                          (list 'EQL a b))))
+
 (define (line->op line)
   (let* ((full-op (string-split line #\space))
          (op-name (car full-op))
          (op-args (cdr full-op))
          (_ (dbg "ops=" (list op-name op-args)))
          (op (cond
-              ((string= op-name "inp") (inp op-args))
-              ((string= op-name "add") (bin-op + op-args))
-              ((string= op-name "mul") (bin-op * op-args))
-              ((string= op-name "mod") (bin-op remainder op-args))
-              ((string= op-name "div") (bin-op quotient op-args))
-              ((string= op-name "eql") (bin-op (lambda (a b)
-                                                 (if (= a b) 1 0))
-                                               op-args)))))
+              ((string= op-name "inp") (op-inp op-args))
+              ((string= op-name "add") (bin-op op-add op-args))
+              ((string= op-name "mul") (bin-op op-mul op-args))
+              ((string= op-name "mod") (bin-op op-mod op-args))
+              ((string= op-name "div") (bin-op op-div op-args))
+              ((string= op-name "eql") (bin-op op-eql op-args)))))
     op))
 
 (define (parse-program port)
@@ -122,6 +178,10 @@
      (else
       (parse-program-rec (read-line port)
                          (cons (line->op line) result))))))
+
+(define (symbolic-analysis program)
+  (let ((end-state  (run program '( a b c d e f g h i j k l m n))))
+    (reg-z (state-regs end-state))))
 
 (define (num->monad-input num)
   (let num->list-rec ((num num) (result '()))
@@ -147,14 +207,45 @@
          (valid? num)
          (else (highest-rec (1- num)))))))
 
+
 (use-modules (statprof))
 (define-public (main args)
    (let*-values (
                  ((program) (parse-program (current-input-port)))
                  ;(_ (statprof (lambda () (highest-fourtenn-digit-validated program (+ 5000000 (expt 10 13))))))
-                 ((result1) (highest-fourtenn-digit-validated program (expt 10 14)))
+                 ((result1) (symbolic-analysis program))
                  ((result2) "UNIMP"))
       (format #t "result1: ~a\n" result1)
       (format #t "result2: ~a\n" result2)))
+
+
+(define program (parse-program (open-input-file "inputs/input")))
+(define res-sym (symbolic-analysis program))
+
+(define (depth x)
+  (cond
+    ((not (list? x)) 1)
+    ((null? x) 0)
+    (else
+      (1+ (max (depth (car x))
+              (depth (cdr x)))))))
+
+(cadr res-sym)
+(append (cdr $8) (cdr $9) $10)
+
+(print-tree res-sym 0)
+(define (print-indent n)
+  (for-each
+   (lambda (_) (display " "))
+   (iota n)))
+
+(define (print-tree obj indent)
+  (cond
+   ((>= indent 40) (print-indent indent) (display "...\n"))
+   ((null? obj))
+   ((list? obj) (map (cut print-tree <> (1+ indent)) obj))
+   (else (print-indent indent) (display obj) (display "\n")))
+  #t)
+
 
 
