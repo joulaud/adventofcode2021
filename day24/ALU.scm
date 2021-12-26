@@ -98,15 +98,39 @@
        input
        (1+ counter)))))
 
-(define (analysis-of-intermediate-programs state)
-   '(let))
+(define (rewrite-ssa-style-reg state reg)
+   (let* ((regs (state-regs state))
+          (counter (state-counter state))
+          (molecules (state-molecules! state))
+          (val (get-reg-or-immediate regs reg)))
+    (cond
+     ((symbol? val) state)
+     ((number? val) state)
+     ((list? val)
+      (let* ((existing-sym (hash-table-ref/default molecules val #f))
+             (new-sym
+               (if existing-sym existing-sym
+                   (let ((new-symbol (string->symbol (string-append
+                                                      reg
+                                                      "-"
+                                                      (number->string counter)))))
+                      (hash-table-set! molecules val new-symbol)
+                      new-symbol))))
+         (set-state-regs state (set-reg regs reg new-sym))))
+     (else (error (format #f "'~a' is not a valid register content" val))))))
 
+(define (rewrite-ssa-style state)
+  (let* ((state (rewrite-ssa-style-reg state "w"))
+         (state (rewrite-ssa-style-reg state "x"))
+         (state (rewrite-ssa-style-reg state "y"))
+         (state (rewrite-ssa-style-reg state "z")))
+    state))
 
 (define (run program input)
   (fold
     (lambda (op state)
       ;(print-registers (state-regs state))
-      (op (state-regs state) (state-input state) (state-counter state)))
+      (rewrite-ssa-style (op (state-regs state) (state-input state) (state-counter state))))
     (make-state empty-registers input 0)
     program))
 
@@ -221,14 +245,13 @@
          (valid? num)
          (else (highest-rec (1- num)))))))
 
-
 (use-modules (statprof))
 (define-public (main args)
    (let*-values (
                  ((program) (parse-program (current-input-port)))
                  ;(_ (statprof (lambda () (highest-fourtenn-digit-validated program (+ 5000000 (expt 10 13))))))
                  ((result1) (symbolic-analysis program))
-                 ((result2) "UNIMP"))
+                 ((result2) (run program '(1 2 3 4 5 6 7 8 9 9 1 2 3 4 5))))
       (format #t "result1: ~a\n" result1)
       (format #t "result2: ~a\n" result2)))
 
