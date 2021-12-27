@@ -1,0 +1,37 @@
+| a        | b        | c        | d        | e        | f         | g        | h        | i         | j        | k         | l        | m         | n        |                                  |
+|----------|----------|----------|----------|----------|-----------|----------|----------|-----------|----------|-----------|----------|-----------|----------|----------------------------------|
+| mul x 0  | mul x 0  | mul x 0  | mul x 0  | mul x 0  | mul x 0   | mul x 0  | mul x 0  | mul x 0   | mul x 0  | mul x 0   | mul x 0  | mul x 0   | mul x 0  |                                  |
+| add x z  | add x z  | add x z  | add x z  | add x z  | add x z   | add x z  | add x z  | add x z   | add x z  | add x z   | add x z  | add x z   | add x z  |                                  |
+| mod x 26 | mod x 26 | mod x 26 | mod x 26 | mod x 26 | mod x 26  | mod x 26 | mod x 26 | mod x 26  | mod x 26 | mod x 26  | mod x 26 | mod x 26  | mod x 26 | x=z mod 26                       |
+|----------|----------|----------|----------|----------|-----------|----------|----------|-----------|----------|-----------|----------|-----------|----------|----------------------------------|
+| div z 1  | div z 1  | div z 1  | div z 1  | div z 1  | div z 26  | div z 26 | div z 1  | div z 26  | div z 1  | div z 26  | div z 26 | div z 26  | div z 26 | z2=z div @                       |
+| add x 10 | add x 10 | add x 14 | add x 11 | add x 14 | add x -14 | add x 0  | add x 10 | add x -10 | add x 13 | add x -12 | add x -3 | add x -11 | add x -2 | x = z mod 26 + @                 |
+| eql x w  | eql x w  | eql x w  | eql x w  | eql x w  | eql x w   | eql x w  | eql x w  | eql x w   | eql x w  | eql x w   | eql x w  | eql x w   | eql x w  | compare x and input              |
+| eql x 0  | eql x 0  | eql x 0  | eql x 0  | eql x 0  | eql x 0   | eql x 0  | eql x 0  | eql x 0   | eql x 0  | eql x 0   | eql x 0  | eql x 0   | eql x 0  | invert x (input != z mod 26 + @) |
+|----------|----------|----------|----------|----------|-----------|----------|----------|-----------|----------|-----------|----------|-----------|----------|----------------------------------|
+| mul y 0  | mul y 0  | mul y 0  | mul y 0  | mul y 0  | mul y 0   | mul y 0  | mul y 0  | mul y 0   | mul y 0  | mul y 0   | mul y 0  | mul y 0   | mul y 0  |                                  |
+| add y 25 | add y 25 | add y 25 | add y 25 | add y 25 | add y 25  | add y 25 | add y 25 | add y 25  | add y 25 | add y 25  | add y 25 | add y 25  | add y 25 |                                  |
+| mul y x  | mul y x  | mul y x  | mul y x  | mul y x  | mul y x   | mul y x  | mul y x  | mul y x   | mul y x  | mul y x   | mul y x  | mul y x   | mul y x  |                                  |
+| add y 1  | add y 1  | add y 1  | add y 1  | add y 1  | add y 1   | add y 1  | add y 1  | add y 1   | add y 1  | add y 1   | add y 1  | add y 1   | add y 1  |                                  |
+| mul z y  | mul z y  | mul z y  | mul z y  | mul z y  | mul z y   | mul z y  | mul z y  | mul z y   | mul z y  | mul z y   | mul z y  | mul z y   | mul z y  | z3 = if x then z2*26 else z2     |
+|----------|----------|----------|----------|----------|-----------|----------|----------|-----------|----------|-----------|----------|-----------|----------|----------------------------------|
+| mul y 0  | mul y 0  | mul y 0  | mul y 0  | mul y 0  | mul y 0   | mul y 0  | mul y 0  | mul y 0   | mul y 0  | mul y 0   | mul y 0  | mul y 0   | mul y 0  |                                  |
+| add y w  | add y w  | add y w  | add y w  | add y w  | add y w   | add y w  | add y w  | add y w   | add y w  | add y w   | add y w  | add y w   | add y w  |                                  |
+| add y 2  | add y 4  | add y 8  | add y 7  | add y 12 | add y 7   | add y 10 | add y 14 | add y 2   | add y 6  | add y 8   | add y 11 | add y 5   | add y 11 | y = input + @                    |
+| mul y x  | mul y x  | mul y x  | mul y x  | mul y x  | mul y x   | mul y x  | mul y x  | mul y x   | mul y x  | mul y x   | mul y x  | mul y x   | mul y x  | y = if x then input + @ else 0   |
+| add z y  | add z y  | add z y  | add z y  | add z y  | add z y   | add z y  | add z y  | add z y   | add z y  | add z y   | add z y  | add z y   | add z y  | znext = z3 + y                   |
+|----------|----------|----------|----------|----------|-----------|----------|----------|-----------|----------|-----------|----------|-----------|----------|----------------------------------|
+
+znext = z3 + y
+      = if x                           then z2*26         + input + @y else z2 + 0 end
+      = if input != z mod 26 + @x      then 26*(z div @z) + input + @y else (z div @z) end
+
+(define (step add-x div-z add-y)
+   (lambda (input zprev)
+     (let* ((zintermediate (quotient zprev div-z)))
+       (cond
+        ((= input (+ (remainder zprev 26) add-x))
+         zinter
+        (else
+         (+ (* 26 zintermediate) div-z)))))))
+
