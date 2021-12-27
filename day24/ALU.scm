@@ -140,6 +140,22 @@
   (fold
     (lambda (op state)
       ;(print-registers (state-regs state))
+      (op state))
+    (make-state empty-registers input 0)
+    program))
+
+(define (run-from-registers program input registers)
+  (fold
+    (lambda (op state)
+      ;(print-registers (state-regs state))
+      (op state))
+    (make-state registers input 0)
+    program))
+
+(define (run-ssa program input)
+  (fold
+    (lambda (op state)
+      ;(print-registers (state-regs state))
       (rewrite-ssa-style (op state)))
     (make-state empty-registers input 0)
     program))
@@ -198,16 +214,20 @@
               ((string= op-name "eql") (bin-op op-eql op-args)))))
     op))
 
-(define (parse-program port)
-  (let parse-program-rec ((line (read-line port)) (result '()))
+(define (parse-programs port)
+  (let parse-program-rec ((line (read-line port)) (program '()) (programs '()))
     (cond
-     ((eof-object? line) (reverse result))
+     ((eof-object? line) (reverse (cons (reverse program) programs)))
      (else
-      (parse-program-rec (read-line port)
-                         (cons (line->op line) result))))))
+       (let* ((inp? (string-prefix? "inp " line))
+              (programs (if inp? (cons (reverse program) programs) programs))
+              (program  (if inp? '() program)))
+        (parse-program-rec (read-line port)
+                           (cons (line->op line) program)
+                           programs))))))
 
 (define (symbolic-analysis program)
-  (run program '( a b c d e f g h i j k l m n)))
+  (run-ssa program '( a b c d e f g h i j k l m n)))
 
 (define (state->z-expression state)
    (let* ((z-content (reg-z (state-regs state)))
@@ -239,6 +259,9 @@
 
 (define (program->ordered-bindings program)
    (let* ((end-state (symbolic-analysis program))
+          ;(w         (reg-w (state-regs end-state)))
+          ;(x         (reg-x (state-regs end-state)))
+          ;(y         (reg-y (state-regs end-state)))
           (z         (reg-z (state-regs end-state)))
           (ordered-symbols (resolve-state-symbol end-state z))
           (ordered-exprs
@@ -477,6 +500,29 @@
          (valid? num)
          (else (highest-rec (1- num)))))))
 
+(define (highest-digits-rec programs registers depth)
+  (cond
+   ((null? programs)
+    (if (= 0 (reg-z registers))
+        1
+        #f))
+   (else
+     (let loop ((digits (iota 9 9 -1)))
+       (if (< depth 8)
+           (dbg "depth,digits=" (list depth digits)))
+       (cond
+        ((null? digits) #f)
+        (else (let* ((program (car programs))
+                     (digit (car digits))
+                     (newstate (run-from-registers program (list digit) registers))
+                     (subresult (highest-digits-rec (cdr programs) (state-regs newstate) (1+ depth)))
+                     (result (if subresult (+ digit (* 10 subresult))
+                                           (loop (cdr digits)))))
+                 result)))))))
+
+(define (highest-digits programs)
+    (highest-digits-rec programs empty-registers 0))
+
 (use-modules (statprof))
 (define (compiled-program a b c d e f g h i j k l m n)
     (let  (
@@ -631,24 +677,13 @@
 
 (define-public (main args)
    (let*-values (
-                 ((result1-precompiled) (fold
-                                          (lambda (a acc)
-                                            (if acc acc
-                                                (let ((res (apply compiled-program
-                                                                  (cons a (iota 13 9 0)))))
-                                                   (dbg "a,res=" (list a res))
-                                                   (if (= 0 res) a #f))))
-                                          #f
-                                          (iota 9 1)))
-                 (_ (dbg "RESUlT?=" result1-precompiled))
-                 ((program) (parse-program (current-input-port)))
+                 ((programs) (parse-programs (current-input-port)))
                  ;(_ (statprof (lambda () (highest-fourtenn-digit-validated program (+ 5000000 (expt 10 13))))))
-                 ((prog-sym) (symbolic-analysis program))
-                 ((optimised-program) (program->optimised-scheme-proc program))
-                 ((highest) (highest-fourteen-digit-validated optimised-program (1- (expt 10 14))))
-                 ((result1) highest)
-                 ((result2) (run program '(1 2 3 4 5 6 7 8 9 9 1 2 3 4 5))))
-      (format #t "result1: ~a\n" result1)))
+                 ;((highest) (highest-fourteen-digit-validated optimised-program (1- (expt 10 14))))
+                 ((result1) (highest-digits programs))
+                 ((result2) "UNIMP")) ;(run program '(1 2 3 4 5 6 7 8 9 9 1 2 3 4 5))))
+      (format #t "result1: ~a\n" result1)
+      (format #t "result2: ~a\n" result2)))
 
 ;; ;;(lambda (a b c d e f g h i j k l m n) (let ((ADD #<procedure + (#:optional _ _ . _)>) (MUL #<procedure * (#:optional _ _ . _)>) (DIV #<procedure quotient (_ _)>) (MOD #<procedure remainder (_ _)>) (EQL #<procedure = (#:optional _ _ . _)>)) (let* ((x-7 (EQL 10 a)) (x-8 (EQL x-7 0)) (y-16 (ADD a 2)) (y-17 (MUL y-16 x-8)) (x-22 (MOD y-17 26)) (x-24 (ADD x-22 10)) (x-25 (EQL x-24 b)) (x-26 (EQL x-25 0)) (y-34 (ADD b 4)) (y-35 (MUL y-34 x-26)) (y-29 (MUL 25 x-26)) (y-30 (ADD y-29 1)) (z-31 (MUL y-17 y-30)) (z-36 (ADD z-31 y-35)) (x-40 (MOD z-36 26)) (x-42 (ADD x-40 14)) (x-43 (EQL x-42 c)) (x-44 (EQL x-43 0)) (y-52 (ADD c 8)) (y-53 (MUL y-52 x-44)) (y-47 (MUL 25 x-44)) (y-48 (ADD y-47 1)) (z-49 (MUL z-36 y-48)) (z-54 (ADD z-49 y-53)) (x-58 (MOD z-54 26)) (x-60 (ADD x-58 11)) (x-61 (EQL x-60 d)) (x-62 (EQL x-61 0)) (y-70 (ADD d 7)) (y-71 (MUL y-70 x-62)) (y-65 (MUL 25 x-62)) (y-66 (ADD y-65 1)) (z-67 (MUL z-54 y-66)) (z-72 (ADD z-67 y-71)) (x-76 (MOD z-72 26)) (x-78 (ADD x-76 14)) (x-79 (EQL x-78 e)) (x-80 (EQL x-79 0)) (y-88 (ADD e 12)) (y-89 (MUL y-88 x-80)) (y-83 (MUL 25 x-80)) (y-84 (ADD y-83 1)) (z-85 (MUL z-72 y-84)) (z-90 (ADD z-85 y-89)) (x-94 (MOD z-90 26)) (x-96 (ADD x-94 -14)) (x-97 (EQL x-96 f)) (x-98 (EQL x-97 0)) (y-106 (ADD f 7)) (y-107 (MUL y-106 x-98)) (y-101 (MUL 25 x-98)) (y-102 (ADD y-101 1)) (z-95 (DIV z-90 26)) (z-103 (MUL z-95 y-102)) (z-108 (ADD z-103 y-107)) (x-112 (MOD z-108 26)) (x-115 (EQL x-112 g)) (x-116 (EQL x-115 0)) (y-124 (ADD g 10)) (y-125 (MUL y-124 x-116)) (y-119 (MUL 25 x-116)) (y-120 (ADD y-119 1)) (z-113 (DIV z-108 26)) (z-121 (MUL z-113 y-120)) (z-126 (ADD z-121 y-125)) (x-130 (MOD z-126 26)) (x-132 (ADD x-130 10)) (x-133 (EQL x-132 h)) (x-134 (EQL x-133 0)) (y-142 (ADD h 14)) (y-143 (MUL y-142 x-134)) (y-137 (MUL 25 x-134)) (y-138 (ADD y-137 1)) (z-139 (MUL z-126 y-138)) (z-144 (ADD z-139 y-143)) (x-148 (MOD z-144 26)) (x-150 (ADD x-148 -10)) (x-151 (EQL x-150 i)) (x-152 (EQL x-151 0)) (y-160 (ADD i 2)) (y-161 (MUL y-160 x-152)) (y-155 (MUL 25 x-152)) (y-156 (ADD y-155 1)) (z-149 (DIV z-144 26)) (z-157 (MUL z-149 y-156)) (z-162 (ADD z-157 y-161)) (x-166 (MOD z-162 26)) (x-168 (ADD x-166 13)) (x-169 (EQL x-168 j)) (x-170 (EQL x-169 0)) (y-178 (ADD j 6)) (y-179 (MUL y-178 x-170)) (y-173 (MUL 25 x-170)) (y-174 (ADD y-173 1)) (z-175 (MUL z-162 y-174)) (z-180 (ADD z-175 y-179)) (x-184 (MOD z-180 26)) (x-186 (ADD x-184 -12)) (x-187 (EQL x-186 k)) (x-188 (EQL x-187 0)) (y-196 (ADD k 8)) (y-197 (MUL y-196 x-188)) (y-191 (MUL 25 x-188)) (y-192 (ADD y-191 1)) (z-185 (DIV z-180 26)) (z-193 (MUL z-185 y-192)) (z-198 (ADD z-193 y-197)) (x-202 (MOD z-198 26)) (x-204 (ADD x-202 -3)) (x-205 (EQL x-204 l)) (x-206 (EQL x-205 0)) (y-214 (ADD l 11)) (y-215 (MUL y-214 x-206)) (y-209 (MUL 25 x-206)) (y-210 (ADD y-209 1)) (z-203 (DIV z-198 26)) (z-211 (MUL z-203 y-210)) (z-216 (ADD z-211 y-215)) (x-220 (MOD z-216 26)) (x-222 (ADD x-220 -11)) (x-223 (EQL x-222 m)) (x-224 (EQL x-223 0)) (y-232 (ADD m 5)) (y-233 (MUL y-232 x-224)) (y-227 (MUL 25 x-224)) (y-228 (ADD y-227 1)) (z-221 (DIV z-216 26)) (z-229 (MUL z-221 y-228)) (z-234 (ADD z-229 y-233)) (x-238 (MOD z-234 26)) (x-240 (ADD x-238 -2)) (x-241 (EQL x-240 n)) (x-242 (EQL x-241 0)) (y-250 (ADD n 11)) (y-251 (MUL y-250 x-242)) (y-245 (MUL 25 x-242)) (y-246 (ADD y-245 1)) (z-239 (DIV z-234 26)) (z-247 (MUL z-239 y-246)) (z-252 (ADD z-247 y-251))) z-252)))
 ;; 
