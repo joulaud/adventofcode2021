@@ -35,3 +35,72 @@ znext = z3 + y
         (else
          (+ (* 26 zintermediate) div-z)))))))
 
+
+
+######################################
+
+Further understanding
+
+if input != z mod 26 + @x then
+    26*(z div @z) + @y
+else
+    (z div @z)
+end
+
+@z est toujours soit "1" (identité dans la division), soit "26".
+Les opérations sur z sont toujours parmi :
+-   26*z + input+@y
+-   26*(z div 26) + input+@y
+-   z
+-   z div 26
+
+La seule valeur qu'on extrait de z est son reste modulo 26 (quand on
+fait x=z mod 26).
+Et input+@y est toujours compris entre 1 et 25 (input entre 1 et 9 par
+construction et @y entre 2 et 14 par observation de mon input)
+
+On peut donc considérer que z est une sorte de pile avec:
+-   peek        : z mod 26
+-   top-replace : 26*(z div 26) + val
+-   push        : 26*z + val
+-   identity    : z
+-   pop         : z div 26
+
+
+|   | @z=1              @z=26                 |                                  | m         | n        |
+|---|-----------------------------------------|----------------------------------|-----------|----------|
+|   |                                         |                                  | mul x 0   | mul x 0  |
+|   |                                         |                                  | add x z   | add x z  |
+|   |                                         | x=z mod 26                       | mod x 26  | mod x 26 |
+| 1 | if @z==1 then A = peek z else A = pop z | z2=z div @z                      | div z 26  | div z 26 |
+|---|-----------------------------------------|----------------------------------|-----------|----------|
+|   | B = A + @x                              | x = z mod 26 + @                 | add x -11 | add x -2 |
+|   |                                         | compare x and input              | eql x w   | eql x w  |
+| 2 | B' = (inp != B)                         | invert x (input != z mod 26 + @) | eql x 0   | eql x 0  |
+|---|-----------------------------------------|----------------------------------|-----------|----------|
+|   |                                         |                                  | mul y 0   | mul y 0  |
+|   |                                         |                                  | add y 25  | add y 25 |
+|   |                                         |                                  | mul y x   | mul y x  |
+|   |                                         |                                  | add y 1   | add y 1  |
+| 3 | if B' op = push  else op = replace      | z3 = if x then z2*26 else z2     | mul z y   | mul z y  |
+|---|-----------------------------------------|----------------------------------|-----------|----------|
+|   |                                         |                                  | mul y 0   | mul y 0  |
+|   |                                         |                                  | add y w   | add y w  |
+|   |                                         | y = input + @                    | add y 5   | add y 11 |
+|   |                                         | y = if x then input + @ else 0   | mul y x   | mul y x  |
+| 4 | if B' push inp+@y to z else nothing     | znext = z3 + y                   | add z y   | add z y  |
+|---|-----------------------------------------|----------------------------------|-----------|----------|
+
+L'algo peut donc aussi être formulé:
+
+if input != top(z) + @x then
+     if @z1 then push(z with input+@y)
+     else        replace(z with input+@y)
+else
+     if @z1 then noop
+     else        pop(z)
+
+Mais ça ne suffit pas à craquer le problème en un temps raisonnable.
+Maintenant il faut comprendre comment inverser le problème et faire
+évoluer, non pas z en fonction de "input" mais "input" (que je vais
+dorénavant appeler "w") en fonction de @x @y et @z.
