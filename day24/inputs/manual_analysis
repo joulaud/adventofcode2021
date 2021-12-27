@@ -1,0 +1,255 @@
+|     |             | w   | x          | y   | z    |                                                     |                                   |
+|     | ----------- | --- | ---        | --- | ---  |                                                     |                                   |
+| 1   | start       | 0   | 0          | 0   | 0    | These variables all start with the value 0          |                                   |
+| 2   | inp w       | a   |            |     |      | le nombre est noté abcdefghijklmn                   |                                   |
+| 3   | mul x 0     |     | 0          |     |      | x3=x*0x=0, mulptiplication par zéro donne zéro      |                                   |
+| 4   | add x z     |     | 0          |     | $    | à ce stade x4=z1=0                                  |                                   |
+| 5   | mod x 26    |     | 0          |     |      | 0 mod 26 = 0                                        |                                   |
+| 6   | div z 1     |     |            |     | 0    | 0 div 1 = 0                                         |                                   |
+| 7   | add x 10    |     | $10        |     |      |                                                     |                                   |
+| 8   | eql x w     | $   | 0          |     |      | 1 si a = 10; or a est un nombre entre 1 et 9 donc 0 |                                   |
+| 9   | eql x 0     |     | 1          |     |      |                                                     |                                   |
+| 10  | mul y 0     |     |            | 0   |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 11  | add y 25    |     |            | 25  |      |                                                     |                                   |
+| 12  | mul y x     |     | $          | 25  |      | y12 = x9 * 25 = 1 * 25 = 25                         |                                   |
+| 13  | add y 1     |     |            | 26  |      |                                                     |                                   |
+| 14  | mul z y     |     |            | $   | $0   | z=0 donc la multiplication donne zéro               |                                   |
+| 15  | mul y 0     |     |            | 0   |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 16  | add y w     | $   |            | a   |      |                                                     |                                   |
+| 17  | add y 2     |     |            | a+2 |      |                                                     |                                   |
+| 18  | mul y x     |     | $          | a+2 |      | x est toujours = 1                                  |                                   |
+| 19  | add z y     |     |            | $   | a+2  |                                                     |                                   |
+| 20  | inp w       | b   |            |     |      |                                                     |                                   |
+| 21  | mul x 0     |     | 0          |     |      | x=0, multiplication par zéro donne zéro             |                                   |
+| 22  | add x z     |     | a+2        |     | $    |                                                     | X22 = a+2                         |
+| 23  | mod x 26    |     | a+2 mod 26 |     |      | on notera Xi=(a+2) mod 26                           | X23 = Xi = ((a + 2) mod 26)       |
+| 24  | div z 1     |     |            |     | $a+2 | division par 1 ne change rien                       |                                   |
+| 25  | add x 10    |     | $Xj        |     |      | Xj = Xi + 10                                        | Xj = 10 + ((a + 2) mod 26)        |
+| 26  | eql x w     | $   | $0         |     |      | X26 == 0 car b < 10  et Xj >= 10                     |                                   |
+| 27  | eql x 0     |     | $1         |     |      | inversion du test                                   |                                   |
+| 28  | mul y 0     |     |            | 0   |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 29  | add y 25    |     |            | 25  |      |                                                     |                                   |
+| 30  | mul y x     |     | $          | $25 |      |                                                     |                                   |
+| 31  | add y 1     |     |            | $26 |      |                                                     |                                   |
+| 32  | mul z y     |     |            |     | $Zi  | Zi=Z32=  Y31 * Z24                                  | Zi = 26 *  (a + 2)                |
+| 33  | mul y 0     |     |            | 0   |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 34  | add y w     | $   |            | b   |      |                                                     |                                   |
+| 35  | add y 4     |     |            | b+4 |      |                                                     |                                   |
+| 36  | mul y x     |     | $          | b+4 |      |                                                     |                                   |
+| 37  | add z y     |     |            |     | $Zj  | Zj = Zi + Y36                                       | Zj = ( 26a + 52 ) + (b + 4)       |
+| 38  | inp w       | c   |            |     |      |                                                     |                                   |
+| 39  | mul x 0     |     | 0          |     |      | x=0, multiplication par zéro donne zéro             |                                   |
+| 40  | add x z     |     | Zj         |     | $    |                                                     |                                   |
+| 41  | mod x 26    |     | Xk         |     |      | Xk = Zj mod 26                                      | Xk = (26a + b + 56) mod 26        |
+| 42  | div z 1     |     |            |     | $Zj  | Z42 = Z37                                           |                                   |
+| 43  | add x 14    |     | $Xl        |     |      | Xl = Xk + 14                                        | Xl = ((26a + b + 56) mod 26) + 14 |
+| 44  | eql x w     |     | $0         |     |      | X44=0 car c < 10 et Xl >= 14                         |                                   |
+| 45  | eql x 0     |     | $1         |     |      | inversion du test                                   |                                   |
+| 46  | mul y 0     |     |            | 0   |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 47  | add y 25    |     |            | $25 |      |                                                     |                                   |
+| 48  | mul y x     |     | $          | $25 |      |                                                     |                                   |
+| 49  | add y 1     |     |            | $26 |      |                                                     |                                   |
+| 50  | mul z y     |     |            | $   | $Zk  | Zk = 26 * Zj                                        | Zk = 26 * (26a + b + 56)    | 26
+| 51  | mul y 0     |     |            | 0   |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 52  | add y w     | $   |            | c   |      |                                                     |                                   |
+| 53  | add y 8     |     |            | c+8 |      |                                                     |                                   |
+| 54  | mul y x     |     | $          | c+8 |      |                                                     |                                   |
+| 55  | add z y     |     |            |     | $Zl  | Zl = c + 8 + Zk                                     | Zl = 676a + 26b + 1456 + c + 8    |
+| 56  | inp w       | d   |            |     |      |                                                     |                                   |
+| 57  | mul x 0     |     | 0          |     |      | x=0, multiplication par zéro donne zéro             |                                   |
+| 58  | add x z     |     | Zl         |     | $    |                                                     |                                   |
+| 59  | mod x 26    |     | Xm         |     |      | Xm = Zl mod 26                                      | Xm = (676a + 26b + 1464 + c) mod 26 |
+| 60  | div z 1     |     |            |     | $Zl  |                                                     |                                   |
+| 61  | add x 11    |     | Xm+11      |     |      |                                                     |                                   |
+| 62  | eql x w     | $   |  0         |     |      | d < 10 , X61 >= 11                                  |                                   |
+| 63  | eql x 0     |     |  1         |     |      |                                                     |                                   |
+| 64  | mul y 0     |     |            | 0   |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 65  | add y 25    |     |            | 25  |      |                                                     |                                   |
+| 66  | mul y x     |     |            | 25  |      |                                                     |                                   |
+| 67  | add y 1     |     |            | 26  |      |                                                     |                                   |
+| 68  | mul z y     |     |            |     | $Zm     | Zm = 26 * Zl                                                    |                                   |
+| 69  | mul y 0     |     |            | 0   |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 70  | add y w     |     |            | d   |      |                                                     |                                   |
+| 71  | add y 7     |     |            | d+7   |      |                                                     |                                   |
+| 72  | mul y x     |     |            | d+7   |      |                                                     |                                   |
+| 73  | add z y     |     |            |     |  $Zn    | Zn = Zm + d = 7                                                    |                                   |
+| 74  | inp w       | e   |            |     |      |                                                     |                                   |
+| 75  | mul x 0     |     |       0    |     |      | x=0, multiplication par zéro donne zéro             |                                   |
+| 76  | add x z     |     |       Zn   |     |      |                                                     |                                   |
+| 77  | mod x 26    |     |  Zn mod 26 |     |      |                                                     |                                   |
+| 78  | div z 1     |     |            |     | Zn   |                                                     |                                   |
+| 79  | add x 14    |     |  >14          |     |      |                                                     |                                   |
+| 80  | eql x w     |     |  0         |     |      |    e < 10 ; X79 >= 14                                                 |                                   |
+| 81  | eql x 0     |     |  1         |     |      |                                                     |                                   |
+| 82  | mul y 0     |     |            | 0   |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 83  | add y 25    |     |            | 25  |      |                                                     |                                   |
+| 84  | mul y x     |     |            | 25  |      |                                                     |                                   |
+| 85  | add y 1     |     |            | 26  |      |                                                     |                                   |
+| 86  | mul z y     |     |            |     |  Zo    | Zo =  26 * Zn                                                   |                                   |
+| 87  | mul y 0     |     |            | 0   |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 88  | add y w     |     |            | e   |      |                                                     |                                   |
+| 89  | add y 12    |     |            | e+12   |      |                                                     |                                   |
+| 90  | mul y x     |     |            | e+12|      |                                                     |                                   |
+| 91  | add z y     |     |            |     |  Zp  | Zp = Zo + e + 12                                    |                                   |
+| 92  | inp w       | f   |            |     |      |                                                     |                                   |
+| 93  | mul x 0     |     |  0         |     |      | x=0, multiplication par zéro donne zéro             |                                   |
+| 94  | add x z     |     |  Zp         |     |      |                                                     |                                   |
+| 95  | mod x 26    |     |  Zp mod 26  |     |      |                                                     |                                   |
+| 96  | div z 26    |     |            |     |  Zq  |  Zq = Zp / 26                                       |                                   |
+| 97  | add x -14   |     |  Xn        |     |      | Xn = (Zp mod 26) - 14                                      |                                   |
+| 98  | eql x w     |     |  Xp        |     |      |                                                     |                                   |
+| 99  | eql x 0     |     |  Xq        |     |      |                                                     |                                   |
+| 100 | mul y 0     |     |            | 0   |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 101 | add y 25    |     |            | 25  |      |                                                     |                                   |
+| 102 | mul y x     |     |            | Yi   |      | Yi = Xq * 25                                                    |                                   |
+| 103 | add y 1     |     |            | Yj   |      | Yj = 1 + (25*Xq)                                    |                                   |
+| 104 | mul z y     |     |            |     |  Zr   | Zr = Zq * Yj                                                    |                                   |
+| 105 | mul y 0     |     |            |  0  |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 106 | add y w     |     |            |  f  |      |                                                     |                                   |
+| 107 | add y 7     |     |            |  f+7  |      |                                                     |                                   |
+| 108 | mul y x     |     |            |     |      |                                                     |                                   |
+| 109 | add z y     |     |            |     |      |                                                     |                                   |
+| 110 | inp w       | g   |            |     |      |                                                     |                                   |
+| 111 | mul x 0     |     |            |     |      | x=0, multiplication par zéro donne zéro             |                                   |
+| 112 | add x z     |     |            |     |      |                                                     |                                   |
+| 113 | mod x 26    |     |            |     |      |                                                     |                                   |
+| 114 | div z 26    |     |            |     |      |                                                     |                                   |
+| 115 | add x 0     |     |            |     |      |                                                     |                                   |
+| 116 | eql x w     |     |            |     |      |                                                     |                                   |
+| 117 | eql x 0     |     |            |     |      |                                                     |                                   |
+| 118 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 119 | add y 25    |     |            |     |      |                                                     |                                   |
+| 120 | mul y x     |     |            |     |      |                                                     |                                   |
+| 121 | add y 1     |     |            |     |      |                                                     |                                   |
+| 122 | mul z y     |     |            |     |      |                                                     |                                   |
+| 123 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 124 | add y w     |     |            |     |      |                                                     |                                   |
+| 125 | add y 10    |     |            |     |      |                                                     |                                   |
+| 126 | mul y x     |     |            |     |      |                                                     |                                   |
+| 127 | add z y     |     |            |     |      |                                                     |                                   |
+| 128 | inp w       | h   |            |     |      |                                                     |                                   |
+| 129 | mul x 0     |     |            |     |      | x=0, multiplication par zéro donne zéro             |                                   |
+| 130 | add x z     |     |            |     |      |                                                     |                                   |
+| 131 | mod x 26    |     |            |     |      |                                                     |                                   |
+| 132 | div z 1     |     |            |     |      |                                                     |                                   |
+| 133 | add x 10    |     |            |     |      |                                                     |                                   |
+| 134 | eql x w     |     |            |     |      |                                                     |                                   |
+| 135 | eql x 0     |     |            |     |      |                                                     |                                   |
+| 136 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 137 | add y 25    |     |            |     |      |                                                     |                                   |
+| 138 | mul y x     |     |            |     |      |                                                     |                                   |
+| 139 | add y 1     |     |            |     |      |                                                     |                                   |
+| 140 | mul z y     |     |            |     |      |                                                     |                                   |
+| 141 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 142 | add y w     |     |            |     |      |                                                     |                                   |
+| 143 | add y 14    |     |            |     |      |                                                     |                                   |
+| 144 | mul y x     |     |            |     |      |                                                     |                                   |
+| 145 | add z y     |     |            |     |      |                                                     |                                   |
+| 146 | inp w       | i   |            |     |      |                                                     |                                   |
+| 147 | mul x 0     |     |            |     |      | x=0, multiplication par zéro donne zéro             |                                   |
+| 148 | add x z     |     |            |     |      |                                                     |                                   |
+| 149 | mod x 26    |     |            |     |      |                                                     |                                   |
+| 150 | div z 26    |     |            |     |      |                                                     |                                   |
+| 151 | add x -10   |     |            |     |      |                                                     |                                   |
+| 152 | eql x w     |     |            |     |      |                                                     |                                   |
+| 153 | eql x 0     |     |            |     |      |                                                     |                                   |
+| 154 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 155 | add y 25    |     |            |     |      |                                                     |                                   |
+| 156 | mul y x     |     |            |     |      |                                                     |                                   |
+| 157 | add y 1     |     |            |     |      |                                                     |                                   |
+| 158 | mul z y     |     |            |     |      |                                                     |                                   |
+| 159 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 160 | add y w     |     |            |     |      |                                                     |                                   |
+| 161 | add y 2     |     |            |     |      |                                                     |                                   |
+| 162 | mul y x     |     |            |     |      |                                                     |                                   |
+| 163 | add z y     |     |            |     |      |                                                     |                                   |
+| 164 | inp w       | j   |            |     |      |                                                     |                                   |
+| 165 | mul x 0     |     |            |     |      | x=0, multiplication par zéro donne zéro             |                                   |
+| 166 | add x z     |     |            |     |      |                                                     |                                   |
+| 167 | mod x 26    |     |            |     |      |                                                     |                                   |
+| 168 | div z 1     |     |            |     |      |                                                     |                                   |
+| 169 | add x 13    |     |            |     |      |                                                     |                                   |
+| 170 | eql x w     |     |            |     |      |                                                     |                                   |
+| 171 | eql x 0     |     |            |     |      |                                                     |                                   |
+| 172 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 173 | add y 25    |     |            |     |      |                                                     |                                   |
+| 174 | mul y x     |     |            |     |      |                                                     |                                   |
+| 175 | add y 1     |     |            |     |      |                                                     |                                   |
+| 176 | mul z y     |     |            |     |      |                                                     |                                   |
+| 177 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 178 | add y w     |     |            |     |      |                                                     |                                   |
+| 179 | add y 6     |     |            |     |      |                                                     |                                   |
+| 180 | mul y x     |     |            |     |      |                                                     |                                   |
+| 181 | add z y     |     |            |     |      |                                                     |                                   |
+| 182 | inp w       | k   |            |     |      |                                                     |                                   |
+| 183 | mul x 0     |     |            |     |      | x=0, multiplication par zéro donne zéro             |                                   |
+| 184 | add x z     |     |            |     |      |                                                     |                                   |
+| 185 | mod x 26    |     |            |     |      |                                                     |                                   |
+| 186 | div z 26    |     |            |     |      |                                                     |                                   |
+| 187 | add x -12   |     |            |     |      |                                                     |                                   |
+| 188 | eql x w     |     |            |     |      |                                                     |                                   |
+| 189 | eql x 0     |     |            |     |      |                                                     |                                   |
+| 190 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 191 | add y 25    |     |            |     |      |                                                     |                                   |
+| 192 | mul y x     |     |            |     |      |                                                     |                                   |
+| 193 | add y 1     |     |            |     |      |                                                     |                                   |
+| 194 | mul z y     |     |            |     |      |                                                     |                                   |
+| 195 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 196 | add y w     |     |            |     |      |                                                     |                                   |
+| 197 | add y 8     |     |            |     |      |                                                     |                                   |
+| 198 | mul y x     |     |            |     |      |                                                     |                                   |
+| 199 | add z y     |     |            |     |      |                                                     |                                   |
+| 200 | inp w       | l   |            |     |      |                                                     |                                   |
+| 201 | mul x 0     |     |            |     |      | x=0, multiplication par zéro donne zéro             |                                   |
+| 202 | add x z     |     |            |     |      |                                                     |                                   |
+| 203 | mod x 26    |     |            |     |      |                                                     |                                   |
+| 204 | div z 26    |     |            |     |      |                                                     |                                   |
+| 205 | add x -3    |     |            |     |      |                                                     |                                   |
+| 206 | eql x w     |     |            |     |      |                                                     |                                   |
+| 207 | eql x 0     |     |            |     |      |                                                     |                                   |
+| 208 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 209 | add y 25    |     |            |     |      |                                                     |                                   |
+| 210 | mul y x     |     |            |     |      |                                                     |                                   |
+| 211 | add y 1     |     |            |     |      |                                                     |                                   |
+| 212 | mul z y     |     |            |     |      |                                                     |                                   |
+| 213 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 214 | add y w     |     |            |     |      |                                                     |                                   |
+| 215 | add y 11    |     |            |     |      |                                                     |                                   |
+| 216 | mul y x     |     |            |     |      |                                                     |                                   |
+| 217 | add z y     |     |            |     |      |                                                     |                                   |
+| 218 | inp w       | m   |            |     |      |                                                     |                                   |
+| 219 | mul x 0     |     |            |     |      | x=0, multiplication par zéro donne zéro             |                                   |
+| 220 | add x z     |     |            |     |      |                                                     |                                   |
+| 221 | mod x 26    |     |            |     |      |                                                     |                                   |
+| 222 | div z 26    |     |            |     |      |                                                     |                                   |
+| 223 | add x -11   |     |            |     |      |                                                     |                                   |
+| 224 | eql x w     |     |            |     |      |                                                     |                                   |
+| 225 | eql x 0     |     |            |     |      |                                                     |                                   |
+| 226 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 227 | add y 25    |     |            |     |      |                                                     |                                   |
+| 228 | mul y x     |     |            |     |      |                                                     |                                   |
+| 229 | add y 1     |     |            |     |      |                                                     |                                   |
+| 230 | mul z y     |     |            |     |      |                                                     |                                   |
+| 231 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 232 | add y w     |     |            |     |      |                                                     |                                   |
+| 233 | add y 5     |     |            |     |      |                                                     |                                   |
+| 234 | mul y x     |     |            |     |      |                                                     |                                   |
+| 235 | add z y     |     |            |     |      |                                                     |                                   |
+| 236 | inp w       | n   |            |     |      |                                                     |                                   |
+| 237 | mul x 0     |     |            |     |      | x=0, multiplication par zéro donne zéro             |                                   |
+| 238 | add x z     |     |            |     |      |                                                     |                                   |
+| 239 | mod x 26    |     |            |     |      |                                                     |                                   |
+| 240 | div z 26    |     |            |     |      |                                                     |                                   |
+| 241 | add x -2    |     |            |     |      |                                                     |                                   |
+| 242 | eql x w     |     |            |     |      |                                                     |                                   |
+| 243 | eql x 0     |     |            |     |      |                                                     |                                   |
+| 244 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 245 | add y 25    |     |            |     |      |                                                     |                                   |
+| 246 | mul y x     |     |            |     |      |                                                     |                                   |
+| 247 | add y 1     |     |            |     |      |                                                     |                                   |
+| 248 | mul z y     |     |            |     |      |                                                     |                                   |
+| 249 | mul y 0     |     |            |     |      | y=0, multiplication par zéro donne zéro             |                                   |
+| 250 | add y w     |     |            |     |      |                                                     |                                   |
+| 251 | add y 11    |     |            |     |      |                                                     |                                   |
+| 252 | mul y x     |     |            |     |      |                                                     |                                   |
+| 253 | add z y     |     |            |     |      |                                                     |                                   |
